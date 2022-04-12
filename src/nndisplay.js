@@ -5,9 +5,9 @@ template.innerHTML = `
 <canvas width=400 height=400></canvas>
 `;
 
-// A canvas that will display a visualization of a neural network
+// A canvas that will display a visualization of a neural network.
 class NNDisplay extends HTMLElement {
-    // Construct the display. Attaches shadow DOM and initializes member variables
+    // Construct the display. Attaches shadow DOM and initializes member variables.
     constructor() {
         super();
 
@@ -66,7 +66,7 @@ class NNDisplay extends HTMLElement {
     }
 
     // Render the canvas and everything in it. This will display the current state of the neural network.
-    // Currently only renders a black square for testing purposes
+    // Currently only renders a black square for testing purposes.
     render() {
         console.log(this.camPos);
         this.ctx.fillStyle = "white";
