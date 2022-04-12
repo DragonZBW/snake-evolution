@@ -7,6 +7,7 @@ template.innerHTML = `
 
 // A canvas that will display a visualization of a neural network
 class NNDisplay extends HTMLElement {
+    // Construct the display. Attaches shadow DOM and initializes member variables
     constructor() {
         super();
 
@@ -23,6 +24,7 @@ class NNDisplay extends HTMLElement {
         this.camPos = new Vector();
     }
 
+    // Called when the element is attached to the DOM. Connects callbacks for scrolling the view by dragging.
     connectedCallback() {
         this.canvas.onmousedown = (e) => {
             const pos = this.getRelativeMousePos(e.pageX, e.pageY);
@@ -48,20 +50,14 @@ class NNDisplay extends HTMLElement {
         this.render();
     }
 
+    // Called when the element is detached from the DOM. Removes all callbacks.
     disconnectedCallback() {
         this.canvas.onmousedown = null;
         this.canvas.onmouseup = null;
         this.canvas.onmousemove = null;
     }
 
-    attributeChangedCallback(attributeName, oldVal, newVal) {
-        this.render()
-    }
-
-    static get observedAttributes() {
-        return [];
-    }
-
+    // Helper function that gets the mouse position relative to the upper left corner of the canvas.
     getRelativeMousePos(x, y) {
         return new Vector(
             x - this.canvas.offsetLeft,
@@ -69,6 +65,8 @@ class NNDisplay extends HTMLElement {
         );
     }
 
+    // Render the canvas and everything in it. This will display the current state of the neural network.
+    // Currently only renders a black square for testing purposes
     render() {
         console.log(this.camPos);
         this.ctx.fillStyle = "white";
