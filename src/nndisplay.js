@@ -1,8 +1,9 @@
+import { NodeTypes } from "./nn.js";
 import Vector from "./vector.js";
 
 const template = document.createElement("template");
 template.innerHTML = `
-<canvas width=400 height=400></canvas>
+<canvas width=700 height=400></canvas>
 `;
 
 // A canvas that will display a visualization of a neural network.
@@ -37,7 +38,7 @@ class NNDisplay extends HTMLElement {
         this.canvas.onmousemove = (e) => {
             if (!this.dragging)
                 return;
-            
+
             const pos = this.getRelativeMousePos(e.pageX, e.pageY);
             const mouseDelta = pos.minus(this.prevMousePos);
             this.prevMousePos = pos.copy();
@@ -65,14 +66,124 @@ class NNDisplay extends HTMLElement {
         );
     }
 
+    // Draws a node from the neural network on the display.
+    // The label parameter is a string for a label to draw next to the circle. 
+    // The textAlign parameter allows placing the text on either side of the circle.
+    drawNode(x, y, color, label, textAlign) {
+        this.ctx.save();
+
+        // Draw the circle
+        this.ctx.beginPath();
+        this.ctx.arc(x - this.camPos.x, y - this.camPos.y, 12, 0, Math.PI * 2, false);
+        this.ctx.closePath();
+        this.ctx.fillStyle = color;
+        this.ctx.strokeStyle = "#122C34";
+        this.ctx.lineWidth = 2;
+        this.ctx.fill();
+        this.ctx.stroke();
+
+        if (label) {
+            this.ctx.fillStyle = "#122C34";
+            this.ctx.textAlign = textAlign;
+            this.ctx.textBaseline = "middle";
+            if (textAlign == "right")
+                this.ctx.fillText(label, x - this.camPos.x - 15, y - this.camPos.y);
+            else
+                this.ctx.fillText(label, x - this.camPos.x + 15, y - this.camPos.y);
+        }
+
+        this.ctx.restore();
+    }
+
+    // Draws a connection from the neural network on the display.
+    // The color and line width are automatically calculated from the weight 
+    // (negative weights are red, positive are green, stronger weights are thicker).
+    drawConnection(x1, y1, x2, y2, weight) {
+        this.ctx.save();
+
+        // Just?? draw the line bro
+        this.ctx.beginPath();
+        this.ctx.moveTo(x1 - this.camPos.x, y1 - this.camPos.y);
+        this.ctx.lineTo(x2 - this.camPos.x, y2 - this.camPos.y);
+
+        this.ctx.strokeStyle = weight > 0 ? "green" : "red";
+        this.ctx.lineWidth = Math.abs(weight) * 5;
+        this.ctx.stroke();
+
+        this.ctx.closePath();
+
+        this.ctx.restore();
+    }
+
     // Render the canvas and everything in it. This will display the current state of the neural network.
     // Currently only renders a black square for testing purposes.
     render() {
-        console.log(this.camPos);
-        this.ctx.fillStyle = "white";
+        //console.log(this.camPos);
+        this.ctx.fillStyle = "#E9EAED";
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-        this.ctx.fillStyle = "black";
-        this.ctx.fillRect(-this.camPos.x, -this.camPos.y, 10, 10);
+
+        // this.ctx.fillStyle = "black";
+        // this.ctx.fillRect(-this.camPos.x, -this.camPos.y, 10, 10);
+
+        // If there is no nn set, don't draw it!
+        if (!this.nn)
+            return;
+
+        const inputCount = this.nn.inputs.length - 1;
+        let curInput = 0;
+        const outputCount = this.nn.outputs.length - 1;
+        let curOutput = 0;
+
+        // Determine positions of nodes on canvas
+        const nodeDrawInf = [];
+        for (let i = 0; i < this.nn.nodes.length; i++) {
+
+            const node = this.nn.nodes[i];
+
+            // draw input nodes on left side
+            if (node.type == NodeTypes.Input) {
+                nodeDrawInf.push({
+                    x: 40,
+                    y: inputCount == 0 ?
+                        this.canvas.height * .5 :
+                        this.canvas.height * .25 + (curInput * this.canvas.height * .5 / inputCount),
+                    color: "#E85D75",
+                    label: node.name,
+                    textAlign: "right"
+                });
+                curInput++;
+            // draw output nodes on right side
+            } else if (node.type == NodeTypes.Output) {
+                nodeDrawInf.push({
+                    x: this.canvas.width - 40,
+                    y: outputCount == 0 ?
+                        this.canvas.height * .5 :
+                        this.canvas.height * .25 + (curOutput * this.canvas.height * .5 / outputCount),
+                    color: "#224870",
+                    label: node.name,
+                    textAlign: "left"
+                });
+                curOutput++;
+            // draw hidden nodes
+            } else {
+                nodeDrawInf.push({
+                    x: this.canvas.width / 2,
+                    y: this.canvas.height / 2,
+                    color: "#F9C80E"
+                });
+            }
+        }
+
+        // draw connections
+        for (let conn of this.nn.connections) {
+            const inputNode = nodeDrawInf[conn.input];
+            const outputNode = nodeDrawInf[conn.output];
+            this.drawConnection(inputNode.x, inputNode.y, outputNode.x, outputNode.y, conn.weight);
+        }
+
+        // draw nodes
+        for (let inf of nodeDrawInf)
+            this.drawNode(inf.x, inf.y, inf.color, inf.label, inf.textAlign);
     }
 }
 
