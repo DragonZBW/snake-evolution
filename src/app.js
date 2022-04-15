@@ -2,6 +2,8 @@
 import "./nndisplay.js";
 import { NN, NodeTypes, WeightRandomizeFuncs } from "./nn.js"
 
+const nnDisplay = document.querySelector("nn-display");
+
 let nn = new NN();
 nn.addInitialNode(NodeTypes.Input, "IN 1");
 nn.addInitialNode(NodeTypes.Input, "IN 2");
@@ -24,8 +26,6 @@ const board = document.querySelector("#game-board");
 board.width = 400;
 board.height = 400;
 const boardCtx = board.getContext("2d");
-
-const nnDisplay = document.querySelector("nn-display");
 
 //snake variables
 let speed = 7;

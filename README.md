@@ -7,3 +7,4 @@ Snake evolution is like snake, but played by the computer! This project uses neu
 ## Sources
 https://www.youtube.com/watch?v=qv6UVOQ0F44 - general info, introduction to NEAT algorithm
 http://nn.cs.utexas.edu/downloads/papers/stanley.ec02.pdf - original paper on the NEAT algorithm
+https://www.youtube.com/watch?v=7Azlj0f9vas - snake game tutorial
