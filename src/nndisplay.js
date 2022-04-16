@@ -212,6 +212,9 @@ class NNDisplay extends HTMLElement {
 
         // draw connections
         for (let conn of this.nn.connections) {
+            if (!conn.enabled)
+                continue;
+            
             const inputNode = nodeDrawInf[conn.input];
             const outputNode = nodeDrawInf[conn.output];
             this.drawConnection(inputNode.x, inputNode.y, outputNode.x, outputNode.y, conn.weight);

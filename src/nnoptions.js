@@ -1,5 +1,5 @@
 // Options for speciating and breeding neural networks.
-class NNOptions {
+export default class NNOptions {
     constructor() {
         // Options for speciation.
         this.compatibilityCoeffExcess = 1;

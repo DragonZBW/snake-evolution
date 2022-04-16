@@ -12,10 +12,24 @@ export const WeightRandomizeFuncs = {
     MinusOneToOne: () => Math.random() * 2 - 1
 };
 
+export const ConnectionEnabledInitializeFuncs = {
+    Enabled: () => true,
+    Disabled: () => false,
+    Random: () => Math.random() > .5
+};
+
+export const ActivationFuncs = {
+    Sigmoid: (x) => 1 / (1 + Math.pow(Math.E, -x)),
+    ModifiedSigmoid: (x) => 1 / (1 + Math.pow(Math.E, -4.9 * x)),
+    Clamp01: (x) => Math.max(0, Math.min(x, 1)),
+    Step01: (x) => x > 0 ? 1 : 0,
+    Sign: (x) => Math.sign(x)
+};
+
 // A neural network based around the NEAT algorithm.
 export class NN {
     /* Notes on data structure:
-        - The network always starts EMPTY. Nodes are added one by one. When initializing a population of networks, one network
+        - The network always starts EMPTY (only having inputs and outputs). Nodes are added one by one. When initializing a population of networks, one network
           should be created with the default initial values, then it should be cloned to the population size.
 
         - ALL NODES in the network are stored in a SINGLE array, indexed only by the order they were added. 
@@ -38,18 +52,23 @@ export class NN {
             3. Weight
             4. Enabled/Disabled?
             5. Innovation Number
-
-            NB. ALL connections WILL have an innovation number, since the neural network is initialized with NO connections
      */
 
     static innovationNumber = 0;
 
-    // Construct an empty neural network.
-    constructor() {
+    /* Construct an empty neural network. Initializes some properties that will remain the same throughout the NN's lifetime. 
+        - connectionInitializeMode: how the connections' enabled property will be initialized when creating the initial nodes + connections
+        - activationFunc: the activation function that will be used to process values in all hidden neurons
+    */
+    constructor(connectionInitializeMode = ConnectionEnabledInitializeFuncs.Enabled, activationFunc = ActivationFuncs.Sigmoid) {
         this.inputs = [];
         this.outputs = [];
         this.nodes = [];
         this.connections = [];
+
+        this.activationFunc = activationFunc;
+
+        this.connectionInitializeMode = connectionInitializeMode;
     }
 
     // Returns a copy of the neural network.
@@ -83,7 +102,7 @@ export class NN {
             
             // Add connections
             for (let o of this.outputs) {
-                this.addConnection(node.id, o.id, 0, true);
+                this.addConnection(node.id, o.id, 0, this.connectionInitializeMode());
             }
         } else {
             // Add to outputs array
@@ -91,7 +110,7 @@ export class NN {
             
             // Add connections
             for (let i of this.inputs) {
-                this.addConnection(i.id, node.id, 0, true);
+                this.addConnection(i.id, node.id, 0, this.connectionInitializeMode());
             }
         }
         
