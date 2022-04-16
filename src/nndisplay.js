@@ -31,6 +31,10 @@ class NNDisplay extends HTMLElement {
     connectedCallback() {
         // Allow movement of the camera position by click-dragging the canvas
         this.canvas.onmousedown = (e) => {
+            // ignore right click
+            if (e.button == 2)
+                return;
+            // get mouse position and start dragging
             const pos = this.getRelativeMousePos(e.pageX, e.pageY);
             this.prevMousePos = pos;
             this.dragging = true;

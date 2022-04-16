@@ -20,6 +20,7 @@ export default class NNOptions {
         this.keepDisabledRate = .75;
         this.newNeuronMutationRate = .03;
         this.newConnectionMutationRate = .05;
+        this.enableDisabledConnectionMutationRate = .04;
 
         // Seal this object. I typically don't use this but since this object will get passed around
         // a lot and needs to have all the right properties on it, it made sense to seal it here.
