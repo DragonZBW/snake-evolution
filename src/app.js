@@ -1,10 +1,11 @@
 // NN TESTING STUFF
 import "./nndisplay.js";
-import { NN, NodeTypes, WeightRandomizeFuncs } from "./nn.js"
+import { NN, NodeTypes } from "./nn.js"
+import Population from "./population.js";
 
 const nnDisplay = document.querySelector("nn-display");
 
-let nn = new NN();
+const nn = new NN();
 nn.addInitialNode(NodeTypes.Input, "IN 1");
 nn.addInitialNode(NodeTypes.Input, "IN 2");
 nn.addInitialNode(NodeTypes.Input, "IN 3");
@@ -13,10 +14,13 @@ nn.addInitialNode(NodeTypes.Output, "OUT");
 nn.addInitialNode(NodeTypes.Output, "OUT 2");
 nn.addInitialNode(NodeTypes.Output, "OUT 3");
 nn.randomizeConnectionWeights();
-console.log(nn);
 
-nnDisplay.nn = nn;
+let population = new Population(20, nn);
+
+nnDisplay.nn = population.networks[0];
 nnDisplay.render();
+
+console.log(population);
 // END NN TESTING
 
 /*

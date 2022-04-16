@@ -1,3 +1,6 @@
+import NNConnection from "./nnconnection.js";
+import NNNode from "./nnnode.js";
+
 export const NodeTypes = {
     Input: 0,
     Hidden: 1,
@@ -51,7 +54,14 @@ export class NN {
 
     // Returns a copy of the neural network.
     copy() {
-        throw "Not implemented yet";
+        const clone = new NN();
+        
+        clone.inputs = this.inputs.map((node) => node.copy());
+        clone.outputs = this.outputs.map((node) => node.copy());
+        clone.nodes = this.nodes.map((node) => node.copy());
+        clone.connections = this.connections.map((conn) => conn.copy());
+
+        return clone;
     }
 
     // Add an input or output node to the neural network.
@@ -64,11 +74,7 @@ export class NN {
             throw "Invalid node type!";
         
         // Create node
-        const node = {
-            id: this.nodes.length,
-            type: type,
-            name: name
-        };
+        const node = new NNNode(this.nodes.length, type, name);
 
         // Add to inputs or outputs array based on type, and add connections to nodes of the opposite type
         if (type == NodeTypes.Input) {
@@ -95,13 +101,7 @@ export class NN {
 
     // Add a connection between two existing nodes. The input and output parameters are the IDs (aka the index in nodes) of the two nodes to connect.
     addConnection(input, output, weight, enabled) {
-        this.connections.push({
-            input: input,
-            output: output,
-            weight: weight,
-            enabled: enabled,
-            innovationNumber: NN.innovationNumber
-        });
+        this.connections.push(new NNConnection(input, output, weight, enabled, NN.innovationNumber));
         NN.innovationNumber++;
     }
 
