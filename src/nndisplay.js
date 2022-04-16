@@ -23,16 +23,22 @@ class NNDisplay extends HTMLElement {
         this.prevMousePos = new Vector();
 
         this.camPos = new Vector();
+        this.camZoom = 1;
     }
 
-    // Called when the element is attached to the DOM. Connects callbacks for scrolling the view by dragging.
+    // Called when the element is attached to the DOM. 
+    // Connects callbacks for scrolling the view by dragging and zooming by scrolling.
     connectedCallback() {
+        // Allow movement of the camera position by click-dragging the canvas
         this.canvas.onmousedown = (e) => {
             const pos = this.getRelativeMousePos(e.pageX, e.pageY);
             this.prevMousePos = pos;
             this.dragging = true;
         };
         this.canvas.onmouseup = (e) => {
+            this.dragging = false;
+        };
+        this.canvas.onmouseout = (e) => {
             this.dragging = false;
         };
         this.canvas.onmousemove = (e) => {
@@ -44,7 +50,30 @@ class NNDisplay extends HTMLElement {
             this.prevMousePos = pos.copy();
 
             this.camPos = this.camPos.minus(mouseDelta);
+            // Clamp cam position
+            if (this.camPos.x < -this.canvas.width / 2)
+                this.camPos.x = -this.canvas.width / 2;
+            else if (this.camPos.x > this.canvas.width / 2)
+                this.camPos.x = this.canvas.width / 2;
+            if (this.camPos.y < -this.canvas.height / 2)
+                this.camPos.y = -this.canvas.height / 2;
+            else if (this.camPos.y > this.canvas.height / 2)
+                this.camPos.y = this.canvas.height / 2;
             this.render();
+        };
+        // Allow zooming in/out using mouse wheel
+        this.canvas.onwheel = (e) => {
+            // Scrolling up zooms in, scrolling down zooms out
+            this.camZoom -= e.deltaY * .005;
+            // Clamp zoom between half and double
+            if (this.camZoom < 0.5)
+                this.camZoom = .5;
+            else if (this.camZoom > 2)
+                this.camZoom = 2
+            
+            this.render();
+            // Prevent this event from scrolling the window
+            e.preventDefault();
         };
 
         // Render once when added to the document
@@ -55,7 +84,9 @@ class NNDisplay extends HTMLElement {
     disconnectedCallback() {
         this.canvas.onmousedown = null;
         this.canvas.onmouseup = null;
+        this.canvas.onmouseout = null;
         this.canvas.onmousemove = null;
+        this.canvas.onscroll = null;
     }
 
     // Helper function that gets the mouse position relative to the upper left corner of the canvas.
@@ -74,7 +105,7 @@ class NNDisplay extends HTMLElement {
 
         // Draw the circle
         this.ctx.beginPath();
-        this.ctx.arc(x - this.camPos.x, y - this.camPos.y, 12, 0, Math.PI * 2, false);
+        this.ctx.arc(x, y, 12, 0, Math.PI * 2, false);
         this.ctx.closePath();
         this.ctx.fillStyle = color;
         this.ctx.strokeStyle = "#122C34";
@@ -87,9 +118,9 @@ class NNDisplay extends HTMLElement {
             this.ctx.textAlign = textAlign;
             this.ctx.textBaseline = "middle";
             if (textAlign == "right")
-                this.ctx.fillText(label, x - this.camPos.x - 15, y - this.camPos.y);
+                this.ctx.fillText(label, x - 15, y);
             else
-                this.ctx.fillText(label, x - this.camPos.x + 15, y - this.camPos.y);
+                this.ctx.fillText(label, x + 15, y);
         }
 
         this.ctx.restore();
@@ -103,8 +134,8 @@ class NNDisplay extends HTMLElement {
 
         // Just?? draw the line bro
         this.ctx.beginPath();
-        this.ctx.moveTo(x1 - this.camPos.x, y1 - this.camPos.y);
-        this.ctx.lineTo(x2 - this.camPos.x, y2 - this.camPos.y);
+        this.ctx.moveTo(x1, y1);
+        this.ctx.lineTo(x2, y2);
 
         this.ctx.strokeStyle = weight > 0 ? "green" : "red";
         this.ctx.lineWidth = Math.abs(weight) * 5;
@@ -118,16 +149,21 @@ class NNDisplay extends HTMLElement {
     // Render the canvas and everything in it. This will display the current state of the neural network.
     // Currently only renders a black square for testing purposes.
     render() {
-        //console.log(this.camPos);
+        this.ctx.save();
+        
+        // Fill background
         this.ctx.fillStyle = "#E9EAED";
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
-        // this.ctx.fillStyle = "black";
-        // this.ctx.fillRect(-this.camPos.x, -this.camPos.y, 10, 10);
 
         // If there is no nn set, don't draw it!
         if (!this.nn)
             return;
+        
+        // Translate by camPos and zoom
+        this.ctx.translate(this.canvas.width / 2, this.canvas.height / 2);
+        this.ctx.scale(this.camZoom, this.camZoom);
+        this.ctx.translate(-this.canvas.width / 2, -this.canvas.height / 2);
+        this.ctx.translate(-this.camPos.x, -this.camPos.y);
 
         const inputCount = this.nn.inputs.length - 1;
         let curInput = 0;
@@ -184,6 +220,8 @@ class NNDisplay extends HTMLElement {
         // draw nodes
         for (let inf of nodeDrawInf)
             this.drawNode(inf.x, inf.y, inf.color, inf.label, inf.textAlign);
+        
+        this.ctx.restore();
     }
 }
 
