@@ -67,8 +67,8 @@ class NNDisplay extends HTMLElement {
         };
         // Allow zooming in/out using mouse wheel
         this.canvas.onwheel = (e) => {
-            // Scrolling up zooms in, scrolling down zooms out
-            this.camZoom -= e.deltaY * .005;
+            // Scrolling up zooms out, scrolling down zooms in
+            this.camZoom += e.deltaY * .005;
             // Clamp zoom between half and double
             if (this.camZoom < 0.5)
                 this.camZoom = .5;
