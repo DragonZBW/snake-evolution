@@ -17,6 +17,8 @@ const breedingOptions = new NNOptions();
 
 let population = new Population(20, nn, WeightRandomizeFuncs.ZeroToOne, breedingOptions);
 
+let displayID = 0;
+
 nnDisplay.nn = population.networks[0];
 nnDisplay.render();
 
@@ -27,6 +29,20 @@ console.log(population.networks[0].process({
     "IN 2": .5
 }));
 // END NN TESTING
+
+// Various event callbacks
+document.querySelector("#btn-next").onclick = () => {
+    displayID = (displayID + 1) % population.networks.length;
+    nnDisplay.nn = population.networks[displayID];
+    nnDisplay.render();
+}
+document.querySelector("#btn-prev").onclick = () => {
+    displayID--;
+    if (displayID < 0)
+        displayID = population.networks.length - 1;
+    nnDisplay.nn = population.networks[displayID];
+    nnDisplay.render();
+}
 
 /*
 Snake game tutorial used: https://www.youtube.com/watch?v=7Azlj0f9vas
