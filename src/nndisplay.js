@@ -1,4 +1,4 @@
-import { NodeTypes } from "./nn.js";
+import { NN, NodeTypes } from "./nn.js";
 import Vector from "./vector.js";
 
 const template = document.createElement("template");
@@ -230,11 +230,15 @@ class NNDisplay extends HTMLElement {
         
         this.ctx.restore();
 
+        // Draw text 
         this.ctx.save();
         this.ctx.textBaseline = "top";
         this.ctx.font = "14px Helvetica";
         this.ctx.fillStyle = "black";
-        this.ctx.fillText("NN " + this.nn.id + ", SPECIES " + this.nn.species, 2, 2);
+        this.ctx.fillText("NN " + this.nn.id + ", SPECIES " + this.nn.species + ", FITNESS " + this.nn.fitness, 2, 2);
+
+        this.ctx.textAlign = "right";
+        this.ctx.fillText("GEN " + NN.gen + ", MAX FITNESS " + NN.highestFitnessThisGen, this.canvas.width - 2, 2);
         this.ctx.restore();
     }
 }

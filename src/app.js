@@ -1,33 +1,77 @@
 // NN TESTING STUFF
 import "./nndisplay.js";
 import NNOptions from "./nnoptions.js";
-import { ConnectionEnabledInitializeFuncs, NN, NodeTypes } from "./nn.js"
+import { ActivationFuncs, ConnectionEnabledInitializeFuncs, NN, NodeTypes } from "./nn.js"
 import Population from "./population.js";
 
 const nnDisplay = document.querySelector("nn-display");
 
-const nn = new NN(ConnectionEnabledInitializeFuncs.Random);
+const nn = new NN(ConnectionEnabledInitializeFuncs.Random, ActivationFuncs.Step01);
 nn.addInitialNode(NodeTypes.Input, "IN 1");
 nn.addInitialNode(NodeTypes.Input, "IN 2");
 nn.addInitialNode(NodeTypes.Output, "OUT 1");
-nn.addInitialNode(NodeTypes.Output, "OUT 2");
 nn.finishInitialization();
 
 const breedingOptions = new NNOptions();
+breedingOptions.newNeuronMutationRate = 1;
+breedingOptions.newConnectionMutationRate = 0;
 
-let population = new Population(20, nn, breedingOptions);
+let population = new Population(2, nn, breedingOptions);
 
 let displayID = 0;
 
 nnDisplay.nn = population.networks[0];
-nnDisplay.render();
 
+const xorProblem = [
+    {
+        inputs: { "IN 1": true, "IN 2": true },
+        output: false
+    },
+    {
+        inputs: { "IN 1": true, "IN 2": false },
+        output: true
+    },
+    {
+        inputs: { "IN 1": false, "IN 2": false },
+        output: false
+    },
+    {
+        inputs: { "IN 1": false, "IN 2": true },
+        output: true
+    }
+];
+
+const calcFitness = () => {
+    population.networks.forEach((network) => {
+        let avgFitness = 0;
+        for (let problem of xorProblem) {
+            const guess = network.process(problem.inputs);
+            avgFitness += 1 - Math.abs(guess["OUT 1"] - problem.output);
+        }
+        avgFitness /= 4;
+        network.assignFitness(avgFitness, population.speciesOf(network).networks.length);
+    });
+    let maxFitness = 0;
+    for (let network of population.networks) {
+        if (network.fitness > maxFitness) {
+            NN.highestFitnessThisGen = network.fitness;
+        }
+    }
+}
+calcFitness();
+
+nnDisplay.render();
 console.log(population);
 
-console.log(population.networks[0].process({
-    "IN 1": 1,
-    "IN 2": .5
-}));
+document.querySelector("#btn-next-gen").onclick = () => {
+    population.nextGeneration();
+    calcFitness();
+
+    nnDisplay.nn = population.networks[0];
+    nnDisplay.render();
+    console.log(population);
+};
+
 // END NN TESTING
 
 // Various event callbacks
@@ -35,14 +79,14 @@ document.querySelector("#btn-next").onclick = () => {
     displayID = (displayID + 1) % population.networks.length;
     nnDisplay.nn = population.networks[displayID];
     nnDisplay.render();
-}
+};
 document.querySelector("#btn-prev").onclick = () => {
     displayID--;
     if (displayID < 0)
         displayID = population.networks.length - 1;
     nnDisplay.nn = population.networks[displayID];
     nnDisplay.render();
-}
+};
 
 /*
 Snake game tutorial used: https://www.youtube.com/watch?v=7Azlj0f9vas

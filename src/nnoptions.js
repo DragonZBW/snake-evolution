@@ -1,7 +1,7 @@
 // Options for speciating and breeding neural networks.
 export default class NNOptions {
     constructor() {
-        // Options for speciation.
+        //Options for speciation.
         this.compatibilityCoeffExcess = 1;      // USED
         this.compatibilityCoeffDisjoint = 1;    // USED
         this.compatibilityCoeffWeightDiff = .4; // USED

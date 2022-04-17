@@ -77,6 +77,9 @@ export function distance(a, b, breedingOptions) {
         }
     }
     
+    if (weightCount == 0)
+        return 0;
+
     const W = weightSum / weightCount;
 
     return ((c1 * E) / N) + ((c2 * D) / N) + (c3 * W);

@@ -12,8 +12,7 @@ const randomMinusOneToOne = () => Math.random() * 2 - 1;
 export const ConnectionEnabledInitializeFuncs = {
     Enabled: () => true,
     Disabled: () => false,
-    Random: () => Math.random() > .5,
-    NoConnections: null
+    Random: () => Math.random() > .5
 };
 
 export const ActivationFuncs = {
@@ -56,6 +55,8 @@ export class NN {
 
     static innovationNumber = 0;
     static innovationsThisGen = {};
+    static gen = 0;
+    static highestFitnessThisGen = 0;
 
     static clearInnovationsThisGen() {
         NN.innovationsThisGen = {};
@@ -92,11 +93,20 @@ export class NN {
 
         clone.inputs = this.inputs.map((node) => node.copy());
         clone.outputs = this.outputs.map((node) => node.copy());
+        const hidden = [];
+        for (let node of this.nodes) {
+            if (node.type == NodeTypes.Hidden) {
+                hidden.push(node.copy());
+            }
+        }
         for (let input of clone.inputs) {
             clone.nodes[input.id] = input;
         }
         for (let output of clone.outputs) {
             clone.nodes[output.id] = output;
+        }
+        for (let h of hidden) {
+            clone.nodes[h.id] = h;
         }
         clone.connections = this.connections.map((conn) => conn.copy());
 
@@ -128,8 +138,6 @@ export class NN {
                 this.inputs.push(node);
 
                 // Add connections
-                if (this.connectionInitializeMode == ConnectionEnabledInitializeFuncs.NoConnections)
-                    break;
                 for (let o of this.outputs) {
                     this.addConnection(node.id, o.id, 0, this.connectionInitializeMode());
                 }
@@ -139,8 +147,6 @@ export class NN {
                 this.outputs.push(node);
 
                 // Add connections
-                if (this.connectionInitializeMode == ConnectionEnabledInitializeFuncs.NoConnections)
-                    break;
                 for (let i of this.inputs) {
                     this.addConnection(i.id, node.id, 0, this.connectionInitializeMode());
                 }
@@ -232,9 +238,9 @@ export class NN {
     addMutatedConnection(connection) {
         // Check for a matching connection in another innovation from this gen
         let match = undefined;
-        for (let conn of NN.innovationsThisGen) {
-            if (connection.matches(conn)) {
-                match = conn;
+        for (let conn in NN.innovationsThisGen) {
+            if (connection.matches(NN.innovationsThisGen[conn])) {
+                match = NN.innovationsThisGen[conn];
             }
         }
         if (match) {
@@ -248,6 +254,7 @@ export class NN {
 
     // Mutates this neural network. This DOES directly modify the neural network and doesn't create a new one.
     mutate(breedingOptions) {
+        console.log("MUTATION START - " + this.connections.length + " connections - " + this.nodes.length + " nodes");
         this.finishInitialization();
 
         // Mutate weights?
@@ -275,95 +282,113 @@ export class NN {
                connection leading out receives the same weight as the old connection. */
 
             // Pick a random enabled connection to split
-            let connIndex = Math.floor(Math.random() * this.connections.length);
-            while (!this.connections[connIndex].enabled)
-                connIndex = Math.floor(Math.random() * this.connections.length);
-            const oldConn = this.connections[connIndex];
+            // First make a list of all enabled connections
+            const enabledConnections = [];
+            for (let conn of this.connections) {
+                if (conn.enabled)
+                    enabledConnections.push(conn);
+            }
+            if (enabledConnections.length > 0) {
+                console.log("adding new node");
 
-            // Disable the old connection
-            oldConn.enabled = false;
+                let connIndex = Math.floor(Math.random() * enabledConnections.length);
+                const oldConn = enabledConnections[connIndex];
 
-            // Make a new node
-            const newNode = new NNNode(this.nodes.length, NodeTypes.Hidden);
-            this.nodes.push(newNode);
+                // Disable the old connection
+                oldConn.enabled = false;
 
-            // Connect the new node
-            this.addMutatedConnection(new NNConnection(oldConn.input, newNode.id, 1, true, NN.innovationNumber));
-            this.addMutatedConnection(new NNConnection(newNode.id, oldConn.output, oldConn.weight, true, NN.innovationNumber));
+                // Make a new node
+                const newNode = new NNNode(this.nodes.length, NodeTypes.Hidden);
+                this.nodes.push(newNode);
+
+                // Connect the new node
+                this.addMutatedConnection(new NNConnection(oldConn.input, newNode.id, 1, true, NN.innovationNumber));
+                this.addMutatedConnection(new NNConnection(newNode.id, oldConn.output, oldConn.weight, true, NN.innovationNumber));
+            }
         }
 
         // Mutate a new connection/enable a disabled connection?
-        if (Math.random() < breedingOptions.newConnectionMutationRate) {
-            /* From http://nn.cs.utexas.edu/downloads/papers/stanley.ec02.pdf:
-               In the add connection mutation, a single new connection gene with a random weight is added connecting
-               two previously unconnected nodes. */
+        // if (Math.random() < breedingOptions.newConnectionMutationRate) {
+        //     /* From http://nn.cs.utexas.edu/downloads/papers/stanley.ec02.pdf:
+        //        In the add connection mutation, a single new connection gene with a random weight is added connecting
+        //        two previously unconnected nodes. */
 
-            if (Math.random() < breedingOptions.enableDisabledConnectionRate) {
-                // Enable a disabled connection
-                const disabledConnections = [];
-                for (let conn of this.connections) {
-                    if (!conn.enabled)
-                        disabledConnections.push(conn);
-                }
+        //     if (Math.random() < breedingOptions.enableDisabledConnectionRate) {
+        //         // Enable a disabled connection
+        //         const disabledConnections = [];
+        //         for (let conn of this.connections) {
+        //             if (!conn.enabled)
+        //                 disabledConnections.push(conn);
+        //         }
 
-                if (disabledConnections.length > 0) {
-                    disabledConnections[Math.floor(Math.random() * disabledConnections.length)].enabled = true;
-                }
-            } else {
-                // First, make a list of all nodes in the network that have at least one other node that is not connected to them as an input
-                const availableNodes = [];
-                for (let node of this.nodes) {
-                    if (node.type == NodeTypes.Input)
-                        continue;
-                    let validInputCount = this.nodes.length - this.outputs.length;
-                    if (node.type == NodeTypes.Hidden)
-                        validInputCount--;
-                    if (node.inputs.length < validInputCount)
-                        availableNodes.push(node);
-                }
+        //         if (disabledConnections.length > 0) {
+        //             disabledConnections[Math.floor(Math.random() * disabledConnections.length)].enabled = true;
+        //         }
+        //     } else {
+        //         // First, make a list of all nodes in the network that have at least one other node that is not connected to them as an input
+        //         const availableNodes = [];
+        //         for (let node of this.nodes) {
+        //             if (node.type == NodeTypes.Input)
+        //                 continue;
+        //             let validInputCount = this.nodes.length - this.outputs.length;
+        //             if (node.type == NodeTypes.Hidden)
+        //                 validInputCount--;
+        //             if (node.inputs.length < validInputCount)
+        //                 availableNodes.push(node);
+        //         }
 
-                if (availableNodes.length > 0) {
-                    // Choose a node from the list
-                    const node = availableNodes[Math.floor(Math.random() * availableNodes.length)];
+        //         if (availableNodes.length > 0) {
+        //             // Choose a node from the list
+        //             const node = availableNodes[Math.floor(Math.random() * availableNodes.length)];
 
-                    // Make a list of all non-output nodes that are NOT in the node's inputs
-                    const availableInputs = [];
-                    for (let n of this.nodes) {
-                        if (n.type == NodeTypes.Output)
-                            continue;
-                        if (!node.inputs.includes(n))
-                            availableInputs.push(n);
-                    }
+        //             // Make a list of all non-output nodes that are NOT in the node's inputs
+        //             const availableInputs = [];
+        //             for (let n of this.nodes) {
+        //                 if (n.type == NodeTypes.Output)
+        //                     continue;
+        //                 if (!node.inputs.includes(n))
+        //                     availableInputs.push(n);
+        //             }
 
-                    // Add a node from the availableInputs list as an input to node
-                    if (availableInputs.length > 0) {
-                        const input = availableInputs[Math.floor(Math.random() * availableInputs.length)];
-                        this.addMutatedConnection(new NNConnection(input.id, node.id, randomMinusOneToOne(), true, NN.innovationNumber));
-                    }
-                }
-            }
-        }
+        //             // Add a node from the availableInputs list as an input to node
+        //             if (availableInputs.length > 0) {
+        //                 const input = availableInputs[Math.floor(Math.random() * availableInputs.length)];
+        //                 this.addMutatedConnection(new NNConnection(input.id, node.id, randomMinusOneToOne(), true, NN.innovationNumber));
+        //             }
+        //         }
+        //     }
+        // }
+        console.log("MUTATION END - " + this.connections.length + " connections - " + this.nodes.length + " nodes");
     }
 
     // Breed two neural networks together to create a new one.
     static breed(parentA, parentB, breedingOptions) {
+        console.log("BREED START - A " + parentA.connections.length + " connections - " + parentA.nodes.length + " nodes. B " + parentB.connections.length + " connections - " + parentB.nodes.length + " nodes");
         // Create a new network to work with
         const newNetwork = new NN(parentA.connectionInitializeMode, parentA.activationFunc);
-        
+
         /* From http://nn.cs.utexas.edu/downloads/papers/stanley.ec02.pdf:
             Matching genes are inherited
             randomly, whereas disjoint genes (those that do not match in the middle) and excess
             genes (those that do not match in the end) are inherited from the more fit parent. In
             this case, equal fitnesses are assumed, so the disjoint and excess genes are also inherited randomly. */
-        
+
+        // Find max innovation values of both parents
+        let aMaxInnovation = -1;
+        for (let conn of parentA.connections) {
+            if (conn.innovationNum > aMaxInnovation)
+                aMaxInnovation = conn.innovationNum;
+        }
+        let bMaxInnovation = -1;
+        for (let conn of parentB.connections) {
+            if (conn.innovationNum > bMaxInnovation)
+                bMaxInnovation = conn.innovationNum;
+        }
+        const maxInnovation = Math.max(aMaxInnovation, bMaxInnovation);
+
         // Look through the parents' connections and sort them by innovation number
         const aConnections = [];
         const bConnections = [];
-
-        // Find max innovation values of both parents
-        const aMaxInnovation = aConnections.reduce((prev, curr) => Math.max(prev.innovationNum, curr.innovationNum));
-        const bMaxInnovation = bConnections.reduce((prev, curr) => Math.max(prev.innovationNum, curr.innovationNum));
-        const maxInnovation = Math.max(aMaxInnovation, bMaxInnovation);
 
         // Create lined up arrays of the genes
         for (let i = 0; i <= maxInnovation; i++) {
@@ -390,49 +415,74 @@ export class NN {
                 bConnections.push(undefined);
         }
 
-        let fitter = undefined;
-        if (parentB.fitness > parentA.fitness) {
-            fitter = bConnections;
-        } else if (parentA.fitness > parentB.fitness) {
-            fitter = aConnections;
-        }
+        console.log(aConnections, bConnections);
+        console.log(aMaxInnovation, bMaxInnovation, maxInnovation);
 
         // Loop through connections by innovation number and pick which genes will get chosen
         for (let i = 0; i <= maxInnovation; i++) {
             // Skip genes that both are missing
             if (!aConnections[i] && !bConnections[i])
                 continue;
-
-            // Figure out which parent to pick the excess and disjoint genes from
-            let preferred = fitter;
-            if (!preferred)
-                preferred = Math.random() < .5 ? aConnections : bConnections;
             
-            const other = (preferred === aConnections ? bConnections : aConnections);
-
-            const prefMaxInnov = preferred === aConnections ? aMaxInnovation : bMaxInnovation;
-            const otherMaxInnov = preferred === aConnections ? bMaxInnovation : aMaxInnovation;
-            
-            if (i > otherMaxInnov && i <= prefMaxInnov) {
-                // If excess
-                newNetwork.connections.push(preferred[i]);
-            } else if (preferred[i] && !other[i]) {
-                // If disjoint
-                newNetwork.connections.push(preferred[i]);
-            } else {
-                // If not excess or disjoint
-                let newConn;
-                if (Math.random() < .5) {
-                    newConn = aConnections[i];
-                } else {
-                    newConn = bConnections[i];
+            if (i > aMaxInnovation && aMaxInnovation < bMaxInnovation && bConnections[i]) {
+                // Is excess (B)?
+                if (parentB.fitness > parentA.fitness || (parentB.fitness == parentA.fitness && Math.random() < .5)) {
+                    newNetwork.connections.push(bConnections[i]);
                 }
-                // Chance to disable
-                if (!aConnections[i].enabled || !bConnections[i].enabled && Math.random() < breedingOptions.keepDisabledRate) {
-                    newConn.enabled = false;
+            } else if (i > bMaxInnovation && bMaxInnovation < aMaxInnovation && aConnections[i]) {
+                // Is excess (A)?
+                if (parentA.fitness > parentB.fitness || (parentA.fitness == parentB.fitness && Math.random() < .5)) {
+                    newNetwork.connections.push(aConnections[i]);
                 }
-                newNetwork.connections.push(newConn);
+            } else if (i <= aMaxInnovation && i <= bMaxInnovation) {
+                if (aConnections[i] && !bConnections[i]) {
+                    // Is disjoint (A)?
+                    if (parentA.fitness > parentB.fitness || (parentA.fitness == parentB.fitness && Math.random() < .5)) {
+                        newNetwork.connections.push(aConnections[i]);
+                    }
+                } else if (bConnections[i] && !aConnections[i]) {
+                    // Is disjoint (B)?
+                    if (parentB.fitness > parentA.fitness || (parentB.fitness == parentA.fitness && Math.random() < .5)) {
+                        newNetwork.connections.push(bConnections[i]);
+                    }
+                } else if (aConnections[i] && bConnections[i]) {
+                    // Not excess or disjoint
+                    let newConn;
+                    if (Math.random() < .5) {
+                        newConn = aConnections[i];
+                    } else {
+                        newConn = bConnections[i];
+                    }
+                    // Chance to disable
+                    if ((!aConnections[i].enabled || !bConnections[i].enabled) && Math.random() < breedingOptions.keepDisabledRate) {
+                        newConn.enabled = false;
+                    }
+                    newNetwork.connections.push(newConn);
+                }
             }
+        }
+
+        // Create a list of nodes that exist in either parent
+        const combinedNodes = {};
+        for (let node of parentA.nodes) {
+            combinedNodes[node.id] = node;
+        }
+        for (let node of parentB.nodes) {
+            combinedNodes[node.id] = node;
+        }
+
+        // Add nodes
+        for (let n in combinedNodes) {
+            const node = combinedNodes[n];
+            switch (node.type) {
+                case NodeTypes.Input:
+                    newNetwork.inputs.push(node);
+                    break;
+                case NodeTypes.Output:
+                    newNetwork.outputs.push(node);
+                    break;
+            }
+            newNetwork.nodes.push(node);
         }
 
         return newNetwork;

@@ -8,6 +8,7 @@ export default class Population {
     // Construct a population with an initial size and template neural network to base the initial condition off of.
     constructor(size, templateNN, breedingOptions) {
         this.size = size;
+        this.gen = 0;
         this.networks = [];
         this.species = [];
 
@@ -21,7 +22,6 @@ export default class Population {
             this.networks.push(nn);
         }
 
-        this.species.push(new Species(this.networks[0]));
         this.classifySpecies();
     }
 
@@ -40,14 +40,25 @@ export default class Population {
                     species.add(nn);
                     nn.species = i;
                     found = true;
+                    break;
                 }
             }
             // If a fitting species was not found, create a new one with this nn
             if (!found) {
+                nn.species = this.species.length;
                 this.species.push(new Species(nn));
-                nn.species = this.species.length - 1;
             }
         }
+    }
+
+    // Get the species that a certain network belongs to.
+    speciesOf(network) {
+        for (let species of this.species) {
+            if (species.networks.includes(network)) {
+                return species;
+            }
+        }
+        return undefined;
     }
 
     // Move to the next generation. Handles breeding and mutation. Assumes that fitness has already been assigned
@@ -110,7 +121,7 @@ export default class Population {
             // The networkFitnesses array is an array of the fitnesses of all the networks in the species. A higher fitness = a higher weight to the breeding chance.
             let networkFitnessTotal = 0;
             let networkFitnesses = [];
-            for (let j = 0; j < this.species[i].networks.length; i++) {
+            for (let j = 0; j < this.species[i].networks.length; j++) {
                 const fitness = this.species[i].networks[j].fitness;
                 networkFitnesses.push(fitness);
                 networkFitnessTotal += fitness;
@@ -130,28 +141,36 @@ export default class Population {
                 const rand = Math.random();
                 let selectedNetwork;
                 for (let j = 0; j < chances.length; j++) {
-                    if (rand < chances[j])
+                    if (rand < chances[j]) {
                         selectedNetwork = j;
+                        break;
+                    }
                 }
                 // If a network was not selected, it means there was an issue in calculating the chances resulting in the highest chance value
                 // not being 1 (this should be the last value in the array) so just pick the last network
                 if (!selectedNetwork)
                     selectedNetwork = chances.length - 1;
+                
+                return selectedNetwork;
             }
 
             // 4. Networks from the same species are combined and create an offspring.
             // Create the allotted number of offspring by selecting networks to breed based on fitness
             for (let j = 0; j < allottedOffspring; j++) {
                 const breedMode = Math.random();
-                if (breedMode > this.breedingOptions.asexualReproductionRate) {
+                if (breedMode < this.breedingOptions.asexualReproductionRate) {
                     const selected = selectNetwork();
                     const newNetwork = this.networks[selected].copy();
+                    newNetwork.id = newPopulation.length;
+                    console.log("MUTATING ASEXUAL", this.networks[selected]);
                     newNetwork.mutate(this.breedingOptions);
                     newPopulation.push(newNetwork);
                 } else {
-                    const a = selectNetwork();
-                    const b = selectNetwork();
+                    const a = this.networks[selectNetwork()];
+                    const b = this.networks[selectNetwork()];
                     const newNetwork = NN.breed(a, b, this.breedingOptions);
+                    newNetwork.id = newPopulation.length;
+                    console.log("MUTATING OFFSPRING", a, b);
                     newNetwork.mutate(this.breedingOptions);
                     newPopulation.push(newNetwork);
                 }
@@ -161,5 +180,7 @@ export default class Population {
         this.networks = newPopulation;
         this.classifySpecies();
         NN.clearInnovationsThisGen();
+        this.gen++;
+        NN.gen = this.gen;
     }
 }

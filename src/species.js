@@ -3,7 +3,8 @@ export default class Species {
     // Construct a species off of a single neural network
     constructor(nn) {
         this.representative = nn;
-        this.networks = [nn];
+        this.networks = [];
+        this.networks.push(nn);
         this.gensWithoutImprovement = 0;
     }
 
