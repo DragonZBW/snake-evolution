@@ -9,13 +9,14 @@ export const NodeTypes = {
 
 export const WeightRandomizeFuncs = {
     ZeroToOne: () => Math.random(),
-    MinusOneToOne: () => Math.random() * 2 - 1
+    MinusOneToOne: () => Math.random() * 2 - 1,
 };
 
 export const ConnectionEnabledInitializeFuncs = {
     Enabled: () => true,
     Disabled: () => false,
-    Random: () => Math.random() > .5
+    Random: () => Math.random() > .5,
+    NoConnections: null
 };
 
 export const ActivationFuncs = {
@@ -62,7 +63,7 @@ export class NN {
         - connectionInitializeMode: how the connections' enabled property will be initialized when creating the initial nodes + connections
         - activationFunc: the activation function that will be used to process values in all hidden neurons
     */
-    constructor(connectionInitializeMode = ConnectionEnabledInitializeFuncs.Enabled, activationFunc = ActivationFuncs.Sigmoid) {
+    constructor(connectionInitializeMode = ConnectionEnabledInitializeFuncs.Enabled, activationFunc = ActivationFuncs.ModifiedSigmoid) {
         this.inputs = [];
         this.outputs = [];
         this.nodes = [];
@@ -113,6 +114,8 @@ export class NN {
                 this.inputs.push(node);
 
                 // Add connections
+                if (this.connectionInitializeMode == ConnectionEnabledInitializeFuncs.NoConnections)
+                    break;
                 for (let o of this.outputs) {
                     this.addConnection(node.id, o.id, 0, this.connectionInitializeMode());
                 }
@@ -122,6 +125,8 @@ export class NN {
                 this.outputs.push(node);
 
                 // Add connections
+                if (this.connectionInitializeMode == ConnectionEnabledInitializeFuncs.NoConnections)
+                    break;
                 for (let i of this.inputs) {
                     this.addConnection(i.id, node.id, 0, this.connectionInitializeMode());
                 }
@@ -167,7 +172,7 @@ export class NN {
         // The NN must have finished being initialized to process data (otherwise, the nodes will not have their inputs arrays set up)
         if (!this.initialized)
             throw "The NN has not finished initialization; can't process data!";
-        
+
         // Define a function for getting the value of a node. This will be used recursively to produce outputs for the netowrk.
         const getValue = (node) => {
             switch (node.type) {
