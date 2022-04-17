@@ -73,6 +73,10 @@ export class NN {
 
         this.connectionInitializeMode = connectionInitializeMode;
         this.initialized = false;
+
+        this.fitness = 0;
+        this.species = undefined;
+        this.id = undefined;
     }
 
     // Returns a copy of the neural network.
@@ -206,6 +210,12 @@ export class NN {
         }
 
         return outputs;
+    }
+
+    // Assign a fitness to this network. The fitness parameter is an unadjusted fitness value, while the species size affects the "fitness sharing" formula,
+    // resulting in a final fitness value for the network.
+    assignFitness(fitness, speciesSize) {
+        this.fitness = fitness / speciesSize;
     }
 
     // Mutates this neural network. This DOES directly modify the neural network and doesn't create a new one.

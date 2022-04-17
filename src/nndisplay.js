@@ -229,6 +229,13 @@ class NNDisplay extends HTMLElement {
             this.drawNode(inf.x, inf.y, inf.color, inf.label, inf.textAlign);
         
         this.ctx.restore();
+
+        this.ctx.save();
+        this.ctx.textBaseline = "top";
+        this.ctx.font = "14px Helvetica";
+        this.ctx.fillStyle = "black";
+        this.ctx.fillText("NN " + this.nn.id + ", SPECIES " + this.nn.species, 2, 2);
+        this.ctx.restore();
     }
 }
 

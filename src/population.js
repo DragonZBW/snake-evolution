@@ -17,6 +17,7 @@ export default class Population {
             const nn = templateNN.copy();
             nn.randomizeConnectionWeights(weightRandomizeFunc);
             nn.finishInitialization();
+            nn.id = i;
             this.networks.push(nn);
         }
 
@@ -33,15 +34,18 @@ export default class Population {
         // Loop through each nn in the networks array and classify it into a species
         for (let nn of this.networks) {
             let found = false;
-            for (let species of this.species) {
+            for (let i = 0; i < this.species.length; i++) {
+                const species = this.species[i];
                 if (Utils.distance(nn, species.representative, this.breedingOptions) < this.breedingOptions.compatibilityThreshold) {
                     species.add(nn);
+                    nn.species = i;
                     found = true;
                 }
             }
             // If a fitting species was not found, create a new one with this nn
             if (!found) {
                 this.species.push(new Species(nn));
+                nn.species = this.species.length - 1;
             }
         }
     }
