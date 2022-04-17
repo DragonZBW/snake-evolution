@@ -6,14 +6,12 @@ import Population from "./population.js";
 
 const nnDisplay = document.querySelector("nn-display");
 
-const nn = new NN(ConnectionEnabledInitializeFuncs.Disabled);
+const nn = new NN(ConnectionEnabledInitializeFuncs.Random);
 nn.addInitialNode(NodeTypes.Input, "IN 1");
 nn.addInitialNode(NodeTypes.Input, "IN 2");
-nn.addInitialNode(NodeTypes.Input, "IN 3");
-nn.addInitialNode(NodeTypes.Input, "IN 4");
-nn.addInitialNode(NodeTypes.Output, "OUT");
+nn.addInitialNode(NodeTypes.Output, "OUT 1");
 nn.addInitialNode(NodeTypes.Output, "OUT 2");
-nn.addInitialNode(NodeTypes.Output, "OUT 3");
+nn.finishInitialization();
 
 const breedingOptions = new NNOptions();
 
@@ -23,6 +21,11 @@ nnDisplay.nn = population.networks[0];
 nnDisplay.render();
 
 console.log(population);
+
+console.log(population.networks[0].process({
+    "IN 1": 1,
+    "IN 2": .5
+}));
 // END NN TESTING
 
 /*

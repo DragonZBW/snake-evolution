@@ -19,6 +19,8 @@ export const ConnectionEnabledInitializeFuncs = {
 };
 
 export const ActivationFuncs = {
+    Value: (x) => x,
+    AbsoluteVal: (x) => Math.abs(x),
     Sigmoid: (x) => 1 / (1 + Math.pow(Math.E, -x)),
     ModifiedSigmoid: (x) => 1 / (1 + Math.pow(Math.E, -4.9 * x)),
     Clamp01: (x) => Math.max(0, Math.min(x, 1)),
@@ -69,15 +71,21 @@ export class NN {
         this.activationFunc = activationFunc;
 
         this.connectionInitializeMode = connectionInitializeMode;
+        this.initialized = false;
     }
 
     // Returns a copy of the neural network.
     copy() {
         const clone = new NN();
-        
+
         clone.inputs = this.inputs.map((node) => node.copy());
         clone.outputs = this.outputs.map((node) => node.copy());
-        clone.nodes = this.nodes.map((node) => node.copy());
+        for (let input of clone.inputs) {
+            clone.nodes[input.id] = input;
+        }
+        for (let output of clone.outputs) {
+            clone.nodes[output.id] = output;
+        }
         clone.connections = this.connections.map((conn) => conn.copy());
 
         return clone;
@@ -86,34 +94,40 @@ export class NN {
     // Add an input or output node to the neural network.
     // This should only be called when first creating neural networks at the start of the population.
     addInitialNode(type, name) {
+        if (this.initialized)
+            throw "The NN has already finished initialization; can't add any more initial nodes!";
+
         // Ensure node type is input or output
         if (type == NodeTypes.Hidden)
             throw "Can't initialize a NEAT neural network with any hidden nodes!";
         if (type != NodeTypes.Input && type != NodeTypes.Output)
             throw "Invalid node type!";
-        
+
         // Create node
         const node = new NNNode(this.nodes.length, type, name);
 
         // Add to inputs or outputs array based on type, and add connections to nodes of the opposite type
-        if (type == NodeTypes.Input) {
-            // Add to inputs array
-            this.inputs.push(node);
-            
-            // Add connections
-            for (let o of this.outputs) {
-                this.addConnection(node.id, o.id, 0, this.connectionInitializeMode());
-            }
-        } else {
-            // Add to outputs array
-            this.outputs.push(node);
-            
-            // Add connections
-            for (let i of this.inputs) {
-                this.addConnection(i.id, node.id, 0, this.connectionInitializeMode());
-            }
+        switch (type) {
+            case NodeTypes.Input:
+                // Add to inputs array
+                this.inputs.push(node);
+
+                // Add connections
+                for (let o of this.outputs) {
+                    this.addConnection(node.id, o.id, 0, this.connectionInitializeMode());
+                }
+                break;
+            case NodeTypes.Output:
+                // Add to outputs array
+                this.outputs.push(node);
+
+                // Add connections
+                for (let i of this.inputs) {
+                    this.addConnection(i.id, node.id, 0, this.connectionInitializeMode());
+                }
+                break;
         }
-        
+
         // Add to master nodes array
         this.nodes.push(node);
     }
@@ -131,13 +145,71 @@ export class NN {
         }
     }
 
+    // Finishes the initialization process by generating data necessary to process inputs.
+    finishInitialization() {
+        /* Generate data. In addition to the starting information from the genotype, each node needs to know
+            - Its INPUT connections. The order in which nodes/connections are processed must be computed in reverse starting from the outputs,
+              so knowing each node's inputs will allow this calculation to be much faster than searching through all the connections
+              each time.
+        */
+
+        // For each connection, check the output and add the connection to that node's inputs array
+        for (let c of this.connections) {
+            const out = this.nodes[c.output];
+            out.inputs.push(c);
+        }
+
+        this.initialized = true;
+    }
+
+    // Process a set of inputs. Inputs are processed using names as indices. Returns an object containing the outputs indexed by name.
+    process(inputs) {
+        // The NN must have finished being initialized to process data (otherwise, the nodes will not have their inputs arrays set up)
+        if (!this.initialized)
+            throw "The NN has not finished initialization; can't process data!";
+        
+        // Define a function for getting the value of a node. This will be used recursively to produce outputs for the netowrk.
+        const getValue = (node) => {
+            switch (node.type) {
+                case NodeTypes.Input:
+                    // INPUT NODE - check the inputs array for the corresponding input. If it is there, just return its value.
+                    // If it's not there, throw an error.
+                    const input = inputs[node.name];
+                    if (input == undefined)
+                        throw "Input for node '" + node.name + "' was missing from the inputs passed in to the NN.";
+                    return input;
+                case NodeTypes.Hidden:
+                case NodeTypes.Output:
+                    // HIDDEN/OUTPUT NODE - sum the values resulting from multiplying the weights of the input connections by the values of the input nodes,
+                    // then run the sum through the activation function and return the resulting value.
+                    let sum = 0;
+                    for (let inConn of node.inputs) {
+                        if (!inConn.enabled)
+                            continue;
+
+                        const value = getValue(this.nodes[inConn.input]) * inConn.weight;
+                        sum += value;
+                    }
+                    return this.activationFunc(sum);
+            }
+        };
+
+        // Create an empty object of outputs, which will get filled up with data by processing each output node using recursion.
+        let outputs = {};
+        for (let output of this.outputs) {
+            outputs[output.name] = getValue(output);
+        }
+
+        return outputs;
+    }
+
     // Mutates this neural network. This DOES directly modify the neural network and doesn't create a new one.
     mutate(breedingOptions) {
-        
+
     }
 
     // Breed two neural networks together to create a new one.
     static breed(parentA, parentB, breedingOptions) {
-        
+
     }
 }

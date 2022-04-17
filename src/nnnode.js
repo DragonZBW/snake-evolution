@@ -5,6 +5,7 @@ export default class NNNode {
         this.id = id;
         this.type = type;
         this.name = name;
+        this.inputs = [];
     }
 
     // Return a copy of the node.

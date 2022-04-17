@@ -14,9 +14,10 @@ export default class Population {
         for (let i = 0; i < size; i++) {
             const nn = templateNN.copy();
             nn.randomizeConnectionWeights(weightRandomizeFunc);
+            nn.finishInitialization();
             this.networks.push(nn);
         }
     }
 
-    
+
 }
