@@ -236,6 +236,7 @@ class NNDisplay extends HTMLElement {
         this.ctx.font = "14px Helvetica";
         this.ctx.fillStyle = "black";
         this.ctx.fillText("NN " + this.nn.id + ", SPECIES " + this.nn.species + ", FITNESS " + this.nn.fitness, 2, 2);
+        this.ctx.fillText("OUTPUT " + this.nn.output + ", EXPECTED " + this.nn.expectedOutput, 2, 17);
 
         this.ctx.textAlign = "right";
         this.ctx.fillText("GEN " + NN.gen + ", MAX FITNESS " + NN.highestFitnessThisGen, this.canvas.width - 2, 2);

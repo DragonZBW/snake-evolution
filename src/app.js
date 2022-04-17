@@ -6,17 +6,19 @@ import Population from "./population.js";
 
 const nnDisplay = document.querySelector("nn-display");
 
-const nn = new NN(ConnectionEnabledInitializeFuncs.Random, ActivationFuncs.Step01);
+const nn = new NN(ConnectionEnabledInitializeFuncs.Enabled, ActivationFuncs.Step01);
 nn.addInitialNode(NodeTypes.Input, "IN 1");
 nn.addInitialNode(NodeTypes.Input, "IN 2");
+nn.addInitialNode(NodeTypes.Input, "BIAS");
 nn.addInitialNode(NodeTypes.Output, "OUT 1");
 nn.finishInitialization();
 
 const breedingOptions = new NNOptions();
-breedingOptions.newNeuronMutationRate = 1;
-breedingOptions.newConnectionMutationRate = 0;
+breedingOptions.compatibilityThreshold = 1.75;
+breedingOptions.newNeuronMutationRate = .08;
+breedingOptions.weightMutationRate = .8;
 
-let population = new Population(2, nn, breedingOptions);
+let population = new Population(50, nn, breedingOptions);
 
 let displayID = 0;
 
@@ -24,32 +26,38 @@ nnDisplay.nn = population.networks[0];
 
 const xorProblem = [
     {
-        inputs: { "IN 1": true, "IN 2": true },
-        output: false
+        inputs: { "IN 1": 1, "IN 2": 1, "BIAS": 1 },
+        output: 0
     },
     {
-        inputs: { "IN 1": true, "IN 2": false },
-        output: true
+        inputs: { "IN 1": 1, "IN 2": 0, "BIAS": 1 },
+        output: 1
     },
     {
-        inputs: { "IN 1": false, "IN 2": false },
-        output: false
+        inputs: { "IN 1": 0, "IN 2": 0, "BIAS": 1 },
+        output: 0
     },
     {
-        inputs: { "IN 1": false, "IN 2": true },
-        output: true
+        inputs: { "IN 1": 0, "IN 2": 1, "BIAS": 1 },
+        output: 1
     }
 ];
 
 const calcFitness = () => {
     population.networks.forEach((network) => {
         let avgFitness = 0;
+        let guesses = [];
         for (let problem of xorProblem) {
             const guess = network.process(problem.inputs);
+            guesses.push(guess["OUT 1"]);
             avgFitness += 1 - Math.abs(guess["OUT 1"] - problem.output);
         }
         avgFitness /= 4;
+        if (avgFitness > .9)
+            console.log(network.id + " FOUND THE ANSWER!");
         network.assignFitness(avgFitness, population.speciesOf(network).networks.length);
+        network.output = "[" + guesses.join() + "]";
+        network.expectedOutput = "[" + xorProblem.map((prob) => prob.output).join() + "]";
     });
     let maxFitness = 0;
     for (let network of population.networks) {

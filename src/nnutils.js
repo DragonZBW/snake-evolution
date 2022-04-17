@@ -8,7 +8,7 @@ export function disjointGenes(a, b) {
 
     let bMaxInnovation = 0;
     for (let gene of b.connections) {
-        if (gene.innovationNum > aMaxInnovation)
+        if (gene.innovationNum > bMaxInnovation)
             bMaxInnovation = gene.innovationNum;
     }
 
@@ -47,7 +47,7 @@ export function excessGenes(a, b) {
 
     let bMaxInnovation = 0;
     for (let gene of b.connections) {
-        if (gene.innovationNum > aMaxInnovation)
+        if (gene.innovationNum > bMaxInnovation)
             bMaxInnovation = gene.innovationNum;
     }
 

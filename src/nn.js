@@ -82,6 +82,8 @@ export class NN {
         this.connectionInitializeMode = connectionInitializeMode;
         this.initialized = false;
 
+        this.output = undefined;
+        this.expectedOutput = undefined;
         this.fitness = 0;
         this.species = undefined;
         this.id = undefined;
@@ -254,7 +256,6 @@ export class NN {
 
     // Mutates this neural network. This DOES directly modify the neural network and doesn't create a new one.
     mutate(breedingOptions) {
-        console.log("MUTATION START - " + this.connections.length + " connections - " + this.nodes.length + " nodes");
         this.finishInitialization();
 
         // Mutate weights?
@@ -289,7 +290,6 @@ export class NN {
                     enabledConnections.push(conn);
             }
             if (enabledConnections.length > 0) {
-                console.log("adding new node");
 
                 let connIndex = Math.floor(Math.random() * enabledConnections.length);
                 const oldConn = enabledConnections[connIndex];
@@ -358,12 +358,10 @@ export class NN {
         //         }
         //     }
         // }
-        console.log("MUTATION END - " + this.connections.length + " connections - " + this.nodes.length + " nodes");
     }
 
     // Breed two neural networks together to create a new one.
     static breed(parentA, parentB, breedingOptions) {
-        console.log("BREED START - A " + parentA.connections.length + " connections - " + parentA.nodes.length + " nodes. B " + parentB.connections.length + " connections - " + parentB.nodes.length + " nodes");
         // Create a new network to work with
         const newNetwork = new NN(parentA.connectionInitializeMode, parentA.activationFunc);
 
@@ -414,9 +412,6 @@ export class NN {
             if (!bFound)
                 bConnections.push(undefined);
         }
-
-        console.log(aConnections, bConnections);
-        console.log(aMaxInnovation, bMaxInnovation, maxInnovation);
 
         // Loop through connections by innovation number and pick which genes will get chosen
         for (let i = 0; i <= maxInnovation; i++) {

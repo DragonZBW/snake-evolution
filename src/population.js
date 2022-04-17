@@ -31,12 +31,20 @@ export default class Population {
         for (let species of this.species) {
             species.prepareForNextGen();
         }
+        for (let i = 0; i < this.species.length; i++) {
+            if (!this.species[i].representative) {
+                this.species.splice(i, 1);
+                i--;
+            }
+        }
         // Loop through each nn in the networks array and classify it into a species
         for (let nn of this.networks) {
             let found = false;
             for (let i = 0; i < this.species.length; i++) {
                 const species = this.species[i];
-                if (Utils.distance(nn, species.representative, this.breedingOptions) < this.breedingOptions.compatibilityThreshold) {
+                const dist = Utils.distance(nn, species.representative, this.breedingOptions);
+                console.log(nn.id + " has a distance of " + dist + " to species " + i);
+                if (dist < this.breedingOptions.compatibilityThreshold) {
                     species.add(nn);
                     nn.species = i;
                     found = true;
@@ -47,6 +55,12 @@ export default class Population {
             if (!found) {
                 nn.species = this.species.length;
                 this.species.push(new Species(nn));
+            }
+        }
+        for (let i = 0; i < this.species.length; i++) {
+            if (this.species[i].networks.length == 0) {
+                this.species.splice(i, 1);
+                i--;
             }
         }
     }
@@ -74,7 +88,8 @@ export default class Population {
         */
 
         // 1. The worst networks are removed from each species
-        for (let species of this.species) {
+        for (let i = 0; i < this.species.length; i++) {
+            const species = this.species[i];
             // Omit species with only one network from this, since they probably haven't gotten a chance to grow yet.
             if (species.networks.length < this.breedingOptions.minSpeciesSizeToRemoveWorst)
                 continue;
@@ -91,19 +106,31 @@ export default class Population {
             // remove the worst network
             species.networks.splice(lowestIndex, 1);
         }
+        for (let i = 0; i < this.species.length; i++) {
+            if (this.species[i].networks.length == 0) {
+                this.species.splice(i);
+                i--;
+            }
+        }
 
         // 2. All species receive a number of offsprings they can have. This is calculated by an adjusted neural network fitness.
         // For my purposes, I am just taking the fittest network of the species and using its adjusted fitness as the offspring generation weight.
         const offspringAllotments = [];
         let speciesFitnessTotal = 0;
-        let speciesFitnesses = [];
+        const speciesFitnesses = [];
         for (let i = 0; i < this.species.length; i++) {
-            const fitness = this.species[i].getFittest().fitness;
+            const fittest = this.species[i].getFittest();
+            if (!fittest) {
+                speciesFitnesses.push(0);
+                continue;
+            }
+            
+            const fitness = fittest.fitness;
             speciesFitnesses.push(fitness);
             speciesFitnessTotal += fitness;
         }
         for (let i = 0; i < speciesFitnesses.length; i++) {
-            offspringAllotments.push(Math.floor(speciesFitnessTotal / speciesFitnesses[i] * this.size));
+            offspringAllotments.push(Math.floor(speciesFitnesses[i] / speciesFitnessTotal * this.size));
         }
         // Ensure the correct number of allotments have been made
         let totalAllotted = offspringAllotments.reduce((prev, curr) => prev + curr);
@@ -112,8 +139,9 @@ export default class Population {
             offspringAllotments[index]++;
             totalAllotted = offspringAllotments.reduce((prev, curr) => prev + curr);
         }
+        console.log("offspring allotments", offspringAllotments);
         // Loop through species and breed networks.
-        for (let i = 0; i < speciesFitnesses.length; i++) {
+        for (let i = 0; i < offspringAllotments.length; i++) {
             // Get the allotted number of offspring for the species
             const allottedOffspring = offspringAllotments[i];
 
@@ -158,22 +186,20 @@ export default class Population {
             // Create the allotted number of offspring by selecting networks to breed based on fitness
             for (let j = 0; j < allottedOffspring; j++) {
                 const breedMode = Math.random();
-                if (breedMode < this.breedingOptions.asexualReproductionRate) {
+               // if (breedMode < this.breedingOptions.asexualReproductionRate) {
                     const selected = selectNetwork();
-                    const newNetwork = this.networks[selected].copy();
+                    const newNetwork = this.species[i].networks[selected].copy();
                     newNetwork.id = newPopulation.length;
-                    console.log("MUTATING ASEXUAL", this.networks[selected]);
                     newNetwork.mutate(this.breedingOptions);
                     newPopulation.push(newNetwork);
-                } else {
-                    const a = this.networks[selectNetwork()];
-                    const b = this.networks[selectNetwork()];
-                    const newNetwork = NN.breed(a, b, this.breedingOptions);
-                    newNetwork.id = newPopulation.length;
-                    console.log("MUTATING OFFSPRING", a, b);
-                    newNetwork.mutate(this.breedingOptions);
-                    newPopulation.push(newNetwork);
-                }
+                // } else {
+                //     const a = this.species[i].networks[selectNetwork()];
+                //     const b = this.species[i].networks[selectNetwork()];
+                //     const newNetwork = NN.breed(a, b, this.breedingOptions);
+                //     newNetwork.id = newPopulation.length;
+                //     newNetwork.mutate(this.breedingOptions);
+                //     newPopulation.push(newNetwork);
+                // }
             }
         }
 

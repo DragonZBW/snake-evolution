@@ -22,6 +22,7 @@ export default class Species {
 
     // Get the fittest network from this species
     getFittest() {
+        if (this.networks.length == 0) return 0;
         return this.networks.reduce((prev, curr) => curr.fitness > prev.fitness ? curr : prev);
     }
 }
