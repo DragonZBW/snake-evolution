@@ -14,7 +14,13 @@ export default class Species {
         this.networks = [];
     }
 
+    // Add a neural network to this species.
     add(nn) {
         this.networks.push(nn);
+    }
+
+    // Get the fittest network from this species
+    getFittest() {
+        return this.networks.reduce((prev, curr) => curr.fitness > prev.fitness ? curr : prev);
     }
 }

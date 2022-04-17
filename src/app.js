@@ -1,7 +1,7 @@
 // NN TESTING STUFF
 import "./nndisplay.js";
 import NNOptions from "./nnoptions.js";
-import { ConnectionEnabledInitializeFuncs, NN, NodeTypes, WeightRandomizeFuncs } from "./nn.js"
+import { ConnectionEnabledInitializeFuncs, NN, NodeTypes } from "./nn.js"
 import Population from "./population.js";
 
 const nnDisplay = document.querySelector("nn-display");
@@ -15,7 +15,7 @@ nn.finishInitialization();
 
 const breedingOptions = new NNOptions();
 
-let population = new Population(20, nn, WeightRandomizeFuncs.ZeroToOne, breedingOptions);
+let population = new Population(20, nn, breedingOptions);
 
 let displayID = 0;
 
