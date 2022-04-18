@@ -5,6 +5,7 @@ export const NodeTypes = {
     Input: 0,
     Hidden: 1,
     Output: 2,
+    Bias: 3
 };
 
 const randomMinusOneToOne = () => Math.random() * 2 - 1;
@@ -127,7 +128,7 @@ export class NN {
         // Ensure node type is input or output
         if (type == NodeTypes.Hidden)
             throw "Can't initialize a NEAT neural network with any hidden nodes!";
-        if (type != NodeTypes.Input && type != NodeTypes.Output)
+        if (type != NodeTypes.Input && type != NodeTypes.Output && type != NodeTypes.Bias)
             throw "Invalid node type!";
 
         // Create node
@@ -151,6 +152,18 @@ export class NN {
                 // Add connections
                 for (let i of this.inputs) {
                     this.addConnection(i.id, node.id, 0, this.connectionInitializeMode());
+                }
+                break;
+            case NodeTypes.Bias:
+                // Techically they are inputs
+                node.type = NodeTypes.Input;
+
+                // Add to inputs array
+                this.inputs.push(node);
+
+                // Add connections
+                for (let o of this.outputs) {
+                    this.addConnection(node.id, o.id, 0, false);
                 }
                 break;
         }

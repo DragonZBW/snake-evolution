@@ -6,7 +6,7 @@ export default class NNOptions {
         this.compatibilityCoeffDisjoint = 1;    // USED
         this.compatibilityCoeffWeightDiff = .4; // USED
         // If the distance function evaluates to less than this number, the two neural networks can be attributed to the same species.
-        this.compatibilityThreshold = 2;        // USED
+        this.compatibilityThreshold = 3;        // USED
         
         // Options for selecting how to breed.
         this.maxGensWithoutImprovement = 15;
@@ -19,9 +19,9 @@ export default class NNOptions {
         this.keepDisabledRate = .75;            // USED
 
         // Options for mutating neural networks.
-        this.weightMutationRate = .5;           // USED
+        this.weightMutationRate = .8;           // USED
         this.uniformPerturbationRate = .9;      // USED
-        this.uniformPerturbationRange = .05;    // USED
+        this.uniformPerturbationRange = .025;    // USED
         this.newNeuronMutationRate = .02;       // USED
         this.newConnectionMutationRate = .04;   // USED
         this.enableDisabledConnectionRate = .04; // USED

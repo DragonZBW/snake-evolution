@@ -203,6 +203,8 @@ export default class Population {
             }
         }
 
+        for (let network of newPopulation)
+            network.finishInitialization();
         this.networks = newPopulation;
         this.classifySpecies();
         NN.clearInnovationsThisGen();

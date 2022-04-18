@@ -6,17 +6,18 @@ import Population from "./population.js";
 
 const nnDisplay = document.querySelector("nn-display");
 
-const nn = new NN(ConnectionEnabledInitializeFuncs.Enabled, ActivationFuncs.Step01);
+const nn = new NN(ConnectionEnabledInitializeFuncs.Disabled, ActivationFuncs.ModifiedSigmoid);
 nn.addInitialNode(NodeTypes.Input, "IN 1");
 nn.addInitialNode(NodeTypes.Input, "IN 2");
-nn.addInitialNode(NodeTypes.Input, "BIAS");
+nn.addInitialNode(NodeTypes.Bias, "BIAS 1");
+nn.addInitialNode(NodeTypes.Bias, "BIAS 2");
 nn.addInitialNode(NodeTypes.Output, "OUT 1");
 nn.finishInitialization();
 
 const breedingOptions = new NNOptions();
 breedingOptions.compatibilityThreshold = 1.75;
-breedingOptions.newNeuronMutationRate = .08;
-breedingOptions.weightMutationRate = .8;
+breedingOptions.newConnectionMutationRate = 1;
+breedingOptions.enableDisabledConnectionRate = 1;
 
 let population = new Population(50, nn, breedingOptions);
 
@@ -26,19 +27,19 @@ nnDisplay.nn = population.networks[0];
 
 const xorProblem = [
     {
-        inputs: { "IN 1": 1, "IN 2": 1, "BIAS": 1 },
+        inputs: { "IN 1": 1, "IN 2": 1, "BIAS 1": 1, "BIAS 2": -1 },
         output: 0
     },
     {
-        inputs: { "IN 1": 1, "IN 2": 0, "BIAS": 1 },
+        inputs: { "IN 1": 1, "IN 2": 0, "BIAS 1": 1, "BIAS 2": -1 },
         output: 1
     },
     {
-        inputs: { "IN 1": 0, "IN 2": 0, "BIAS": 1 },
+        inputs: { "IN 1": 0, "IN 2": 0, "BIAS 1": 1, "BIAS 2": -1 },
         output: 0
     },
     {
-        inputs: { "IN 1": 0, "IN 2": 1, "BIAS": 1 },
+        inputs: { "IN 1": 0, "IN 2": 1, "BIAS 1": 1, "BIAS 2": -1 },
         output: 1
     }
 ];
@@ -49,12 +50,15 @@ const calcFitness = () => {
         let guesses = [];
         for (let problem of xorProblem) {
             const guess = network.process(problem.inputs);
-            guesses.push(guess["OUT 1"]);
+            const guessOutput = Math.round(guess["OUT 1"]);
+            guesses.push(guessOutput);
             avgFitness += 1 - Math.abs(guess["OUT 1"] - problem.output);
         }
         avgFitness /= 4;
-        if (avgFitness > .9)
+        if (avgFitness > .9) {
             console.log(network.id + " FOUND THE ANSWER!");
+            return true;
+        }
         network.assignFitness(avgFitness, population.speciesOf(network).networks.length);
         network.output = "[" + guesses.join() + "]";
         network.expectedOutput = "[" + xorProblem.map((prob) => prob.output).join() + "]";
@@ -65,11 +69,15 @@ const calcFitness = () => {
             NN.highestFitnessThisGen = network.fitness;
         }
     }
+    nnDisplay.nn = population.networks[0];
+    nnDisplay.render();
+    setTimeout(() => {
+        population.nextGeneration();
+        calcFitness();
+    }, 100);
 }
-calcFitness();
 
-nnDisplay.render();
-console.log(population);
+setTimeout(calcFitness, 500);
 
 document.querySelector("#btn-next-gen").onclick = () => {
     population.nextGeneration();

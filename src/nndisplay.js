@@ -74,7 +74,7 @@ class NNDisplay extends HTMLElement {
                 this.camZoom = .5;
             else if (this.camZoom > 2)
                 this.camZoom = 2
-            
+
             this.render();
             // Prevent this event from scrolling the window
             e.preventDefault();
@@ -142,7 +142,7 @@ class NNDisplay extends HTMLElement {
         this.ctx.lineTo(x2, y2);
 
         this.ctx.strokeStyle = weight > 0 ? "green" : "red";
-        this.ctx.lineWidth = Math.abs(weight) * 5;
+        this.ctx.lineWidth = Math.max(1, Math.abs(weight) * 5);
         this.ctx.stroke();
 
         this.ctx.closePath();
@@ -154,7 +154,7 @@ class NNDisplay extends HTMLElement {
     // Currently only renders a black square for testing purposes.
     render() {
         this.ctx.save();
-        
+
         // Fill background
         this.ctx.fillStyle = "#E9EAED";
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
@@ -162,7 +162,7 @@ class NNDisplay extends HTMLElement {
         // If there is no nn set, don't draw it!
         if (!this.nn)
             return;
-        
+
         // Translate by camPos and zoom
         this.ctx.translate(this.canvas.width / 2, this.canvas.height / 2);
         this.ctx.scale(this.camZoom, this.camZoom);
@@ -173,6 +173,10 @@ class NNDisplay extends HTMLElement {
         let curInput = 0;
         const outputCount = this.nn.outputs.length - 1;
         let curOutput = 0;
+        const hiddenCount = this.nn.nodes.length - this.nn.inputs.length - this.nn.outputs.length;
+        let curHidden = 0;
+
+        const hiddenLayerNodes = [];
 
         // Determine positions of nodes on canvas
         const nodeDrawInf = [];
@@ -192,7 +196,7 @@ class NNDisplay extends HTMLElement {
                     textAlign: "right"
                 });
                 curInput++;
-            // draw output nodes on right side
+                // draw output nodes on right side
             } else if (node.type == NodeTypes.Output) {
                 nodeDrawInf.push({
                     x: this.canvas.width - 40,
@@ -204,13 +208,42 @@ class NNDisplay extends HTMLElement {
                     textAlign: "left"
                 });
                 curOutput++;
-            // draw hidden nodes
+                // draw hidden nodes
             } else {
-                nodeDrawInf.push({
-                    x: this.canvas.width / 2,
-                    y: this.canvas.height / 2,
+                const getNodeLayer = (node) => {
+                    let layer = 0;
+                    for (let input of node.inputs) {
+                        const n = this.nn.nodes[input.input];
+                        if (n.type == NodeTypes.Hidden) {
+                            const tempLayer = 1 + getNodeLayer(n);
+                            if (tempLayer > layer)
+                                layer = tempLayer;
+                        }
+                    }
+                    return layer;
+                };
+                const layer = getNodeLayer(node);
+                console.log("NN " + this.nn.id + " layer " + layer);
+                if (!hiddenLayerNodes[layer])
+                    hiddenLayerNodes[layer] = [];
+                hiddenLayerNodes[layer].push({
+                    x: undefined,
+                    y: undefined,
                     color: "#F9C80E"
                 });
+                nodeDrawInf.push(hiddenLayerNodes[layer][hiddenLayerNodes[layer].length - 1]);
+            }
+        }
+
+        // determine positions for hidden nodes
+        for (let layer in hiddenLayerNodes) {
+            const nodes = hiddenLayerNodes[layer];
+
+            for (let i = 0; i < nodes.length; i++) {
+                nodes[i].x = 40 + (this.canvas.width - 80) / (hiddenLayerNodes.length + 1) * (Number(layer) + 1);
+               //nodes[i].x = 40 + 40 * (Number(layer) + 1);
+                console.log("layer " + layer + ", x " + nodes[i].x);
+                nodes[i].y = this.canvas.height * .5 - (nodes.length - 1) * 30 + i * 60;
             }
         }
 
@@ -218,7 +251,7 @@ class NNDisplay extends HTMLElement {
         for (let conn of this.nn.connections) {
             if (!conn.enabled)
                 continue;
-            
+
             const inputNode = nodeDrawInf[conn.input];
             const outputNode = nodeDrawInf[conn.output];
             this.drawConnection(inputNode.x, inputNode.y, outputNode.x, outputNode.y, conn.weight);
@@ -227,7 +260,7 @@ class NNDisplay extends HTMLElement {
         // draw nodes
         for (let inf of nodeDrawInf)
             this.drawNode(inf.x, inf.y, inf.color, inf.label, inf.textAlign);
-        
+
         this.ctx.restore();
 
         // Draw text 
@@ -235,11 +268,11 @@ class NNDisplay extends HTMLElement {
         this.ctx.textBaseline = "top";
         this.ctx.font = "14px Helvetica";
         this.ctx.fillStyle = "black";
-        this.ctx.fillText("NN " + this.nn.id + ", SPECIES " + this.nn.species + ", FITNESS " + this.nn.fitness, 2, 2);
+        this.ctx.fillText("NN " + this.nn.id + ", SPECIES " + this.nn.species + ", FITNESS " + (Math.round(this.nn.fitness * 1000) / 1000), 2, 2);
         this.ctx.fillText("OUTPUT " + this.nn.output + ", EXPECTED " + this.nn.expectedOutput, 2, 17);
 
         this.ctx.textAlign = "right";
-        this.ctx.fillText("GEN " + NN.gen + ", MAX FITNESS " + NN.highestFitnessThisGen, this.canvas.width - 2, 2);
+        this.ctx.fillText("GEN " + NN.gen + ", MAX FITNESS " + (Math.round(NN.highestFitnessThisGen * 1000) / 1000), this.canvas.width - 2, 2);
         this.ctx.restore();
     }
 }
