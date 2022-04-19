@@ -59,7 +59,10 @@ class XOR extends HTMLElement {
                 }
                 const output = this.nn.process(inputs)["OUT 1"];
                 this.ctx.fillStyle = `rgba(0,0,0,${output})`;
+                this.ctx.strokeStyle = `rgba(0,0,0,.25)`;
+                this.ctx.lineWidth = .5;
                 this.ctx.fillRect(i * pixelSize, j * pixelSize, pixelSize, pixelSize);
+                this.ctx.strokeRect(i * pixelSize, j * pixelSize, pixelSize, pixelSize);
             }
         }
 
