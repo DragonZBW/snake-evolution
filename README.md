@@ -10,3 +10,4 @@ http://nn.cs.utexas.edu/downloads/papers/stanley.ec02.pdf - original paper on th
 https://www.youtube.com/watch?v=7Azlj0f9vas - snake game tutorial
 https://ai.stackexchange.com/questions/5548/how-are-connection-weights-perturbed - info on how to adjust weights
 https://ai.stackexchange.com/questions/2689/how-does-mating-take-place-in-neat - info on how breeding works in NEAT
+https://www.youtube.com/watch?v=188B6k_F9jU - xor problem info

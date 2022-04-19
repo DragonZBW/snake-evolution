@@ -144,6 +144,7 @@ export default class Population {
         for (let i = 0; i < offspringAllotments.length; i++) {
             // Get the allotted number of offspring for the species
             const allottedOffspring = offspringAllotments[i];
+            console.log(allottedOffspring + " offspring allotted for species " + i + " with max fitness " + speciesFitnesses[i]);
 
             // 3. Offsprings for species are divided among neural networks in those species. Fitter neural networks have more offsprings.
             // The networkFitnesses array is an array of the fitnesses of all the networks in the species. A higher fitness = a higher weight to the breeding chance.

@@ -1,65 +1,79 @@
 // NN TESTING STUFF
 import "./nndisplay.js";
 import "./snake.js";
+import "./xor.js";
 import NNOptions from "./nnoptions.js";
 import { ActivationFuncs, ConnectionEnabledInitializeFuncs, NN, NodeTypes } from "./nn.js"
 import Population from "./population.js";
 
 const nnDisplay = document.querySelector("nn-display");
+const xor = document.querySelector("xor-display");
 
 const nn = new NN(ConnectionEnabledInitializeFuncs.Disabled, ActivationFuncs.ModifiedSigmoid);
 nn.addInitialNode(NodeTypes.Input, "IN 1");
 nn.addInitialNode(NodeTypes.Input, "IN 2");
 nn.addInitialNode(NodeTypes.Bias, "BIAS 1");
-nn.addInitialNode(NodeTypes.Bias, "BIAS 2");
 nn.addInitialNode(NodeTypes.Output, "OUT 1");
+nn.addHiddenNode([0, 1, 2], []);
+nn.addHiddenNode([0, 1, 2], []);
+nn.addHiddenNode([2, 4, 5], [3]);
+nn.addHiddenNode([2, 4, 5], [3]);
+console.log(nn);
 
 const breedingOptions = new NNOptions();
-breedingOptions.compatibilityThreshold = 1.75;
-breedingOptions.newConnectionMutationRate = 1;
-breedingOptions.enableDisabledConnectionRate = .1;
+breedingOptions.newNeuronMutationRate = .01;
+breedingOptions.compatibilityThreshold = 10;
 
-let population = new Population(50, nn, breedingOptions);
+breedingOptions.weightMutationRate = .2;
+breedingOptions.uniformPerturbationRange = .02;
+breedingOptions.newNeuronMutationRate = 0;
+breedingOptions.newConnectionMutationRate = 0;
+
+let population = new Population(150, nn, breedingOptions);
 
 let displayID = 0;
 
 nnDisplay.nn = population.networks[0];
+xor.nn = population.networks[0];
 
 const xorProblem = [
     {
-        inputs: { "IN 1": 1, "IN 2": 1, "BIAS 1": 1, "BIAS 2": -1 },
+        inputs: { "IN 1": 1, "IN 2": 1, "BIAS 1": 1 },
         output: 0
     },
     {
-        inputs: { "IN 1": 1, "IN 2": 0, "BIAS 1": 1, "BIAS 2": -1 },
+        inputs: { "IN 1": 1, "IN 2": 0, "BIAS 1": 1 },
         output: 1
     },
     {
-        inputs: { "IN 1": 0, "IN 2": 0, "BIAS 1": 1, "BIAS 2": -1 },
+        inputs: { "IN 1": 0, "IN 2": 0, "BIAS 1": 1 },
         output: 0
     },
     {
-        inputs: { "IN 1": 0, "IN 2": 1, "BIAS 1": 1, "BIAS 2": -1 },
+        inputs: { "IN 1": 0, "IN 2": 1, "BIAS 1": 1 },
         output: 1
     }
 ];
 
+let running = false;
+
 const calcFitness = () => {
     population.networks.forEach((network) => {
-        let avgFitness = 0;
+        let sumFitness = 0;
         let guesses = [];
         for (let problem of xorProblem) {
             const guess = network.process(problem.inputs);
             const guessOutput = Math.round(guess["OUT 1"]);
             guesses.push(guessOutput);
-            avgFitness += 1 - Math.abs(guess["OUT 1"] - problem.output);
+            sumFitness += Math.abs(guess["OUT 1"] - problem.output);
         }
-        avgFitness /= 4;
-        if (avgFitness > .9) {
+        sumFitness = 4 - sumFitness;
+        sumFitness *= sumFitness;
+        if (sumFitness > 15.75) {
             console.log(network.id + " FOUND THE ANSWER!");
             return true;
         }
-        network.assignFitness(avgFitness, population.speciesOf(network).networks.length);
+        network.assignFitness(sumFitness, population.speciesOf(network).networks.length);
         network.output = "[" + guesses.join() + "]";
         network.expectedOutput = "[" + xorProblem.map((prob) => prob.output).join() + "]";
     });
@@ -71,21 +85,52 @@ const calcFitness = () => {
     }
     nnDisplay.nn = population.networks[0];
     nnDisplay.render();
+    xor.nn = population.networks[0];
+    xor.render();
     console.log(population);
+    if (!running)
+        return;
     setTimeout(() => {
-        population.nextGeneration();
-        calcFitness();
-    }, 100);
+        if (running) {
+            population.nextGeneration();
+            calcFitness();
+        }
+    }, 50);
 }
 
-setTimeout(calcFitness, 500);
+setTimeout(() => {
+    running = true;
+    calcFitness();
+}, 500);
 
 document.querySelector("#btn-next-gen").onclick = () => {
     population.nextGeneration();
     calcFitness();
 
     nnDisplay.nn = population.networks[0];
+    xor.nn = population.networks[0];
     nnDisplay.render();
+    xor.render();
+};
+
+document.querySelector("#btn-pause").onclick = () => {
+    running = !running;
+    if (running) {
+        calcFitness();
+    }
+};
+
+document.querySelector("#btn-view-fittest").onclick = () => {
+    let fittestIndex = 0;
+    for (let i = 0; i < population.networks.length; i++) {
+        if (population.networks[i].fitness > population.networks[fittestIndex].fitness)
+            fittestIndex = i;
+    }
+    displayID = fittestIndex;
+    nnDisplay.nn = population.networks[displayID];
+    nnDisplay.render();
+    xor.nn = population.networks[displayID];
+    xor.render();
 };
 
 // END NN TESTING
@@ -95,6 +140,8 @@ document.querySelector("#btn-next").onclick = () => {
     displayID = (displayID + 1) % population.networks.length;
     nnDisplay.nn = population.networks[displayID];
     nnDisplay.render();
+    xor.nn = population.networks[displayID];
+    xor.render();
 };
 document.querySelector("#btn-prev").onclick = () => {
     displayID--;
@@ -102,6 +149,8 @@ document.querySelector("#btn-prev").onclick = () => {
         displayID = population.networks.length - 1;
     nnDisplay.nn = population.networks[displayID];
     nnDisplay.render();
+    xor.nn = population.networks[displayID];
+    xor.render();
 };
 
 

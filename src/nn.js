@@ -169,8 +169,23 @@ export class NN {
         this.nodes.push(node);
     }
 
+    addHiddenNode(inputs, outputs) {
+        const node = new NNNode(this.nodes.length, NodeTypes.Hidden);
+
+        this.nodes.push(node);
+
+        for (let input of inputs) {
+            this.addConnection(input, node.id, randomMinusOneToOne(), true);
+        }
+
+        for (let output of outputs) {
+            this.addConnection(node.id, output, randomMinusOneToOne(), true);
+        }
+    }
+
     // Add a connection between two existing nodes. The input and output parameters are the IDs (aka the index in nodes) of the two nodes to connect.
     addConnection(input, output, weight, enabled) {
+        console.log("adding connection from " + input + " to " + output);
         this.connections.push(new NNConnection(input, output, weight, enabled, NN.innovationNumber));
         NN.innovationNumber++;
     }
@@ -184,7 +199,6 @@ export class NN {
 
     // Finishes the initialization process by generating data necessary to process inputs.
     updateNodeInputs() {
-        console.log("updating inputs of " + this.id);
         /* Generate data. In addition to the starting information from the genotype, each node needs to know
             - Its INPUT connections. The order in which nodes/connections are processed must be computed in reverse starting from the outputs,
               so knowing each node's inputs will allow this calculation to be much faster than searching through all the connections
@@ -204,7 +218,6 @@ export class NN {
 
     // Process a set of inputs. Inputs are processed using names as indices. Returns an object containing the outputs indexed by name.
     process(inputs) {
-        console.log(this.id + " processing inputs");
         this.updateNodeInputs();
 
         // Define a function for getting the value of a node. This will be used recursively to produce outputs for the network.
@@ -277,8 +290,6 @@ export class NN {
                 if (Math.random() < breedingOptions.uniformPerturbationRate) {
                     // Uniform perturbation
                     c.weight += randomMinusOneToOne() * breedingOptions.uniformPerturbationRange;
-                    // clamp weight between -1 and 1
-                    c.weight = Math.min(1, Math.max(c.weight, -1));
                 } else {
                     // New random value
                     c.weight = randomMinusOneToOne();
@@ -373,12 +384,10 @@ export class NN {
                         
                         // Check if connecting nodeB as an input would create a loop.
                         const nodeHasInput = (nodeA, nodeB) => {
-                            console.log("checking if " + nodeA.id + " has " + nodeB.id + " as an input");
                             if (nodeA.type == NodeTypes.Input)
                                 return false;
                             
                             for (let conn of nodeA.inputs) {
-                                console.log("checking connection with input " + conn.input);
                                 if (conn.input == nodeB.id)
                                     return true;
                             }
@@ -389,10 +398,8 @@ export class NN {
                             return false;
                         };
                         if (nodeHasInput(nodeB, node)) {
-                            console.log("it does!");
                             continue;
                         }
-                        console.log("it doesn't!");
                         
                         // All cases have been checked and the node is valid as an input, add it to the array
                         availableNode.availableInputs.push(nodeB);

@@ -223,7 +223,6 @@ class NNDisplay extends HTMLElement {
                     return layer;
                 };
                 const layer = getNodeLayer(node);
-                console.log("NN " + this.nn.id + " layer " + layer);
                 if (!hiddenLayerNodes[layer])
                     hiddenLayerNodes[layer] = [];
                 hiddenLayerNodes[layer].push({
@@ -242,7 +241,6 @@ class NNDisplay extends HTMLElement {
             for (let i = 0; i < nodes.length; i++) {
                 nodes[i].x = 40 + (this.canvas.width - 80) / (hiddenLayerNodes.length + 1) * (Number(layer) + 1);
                //nodes[i].x = 40 + 40 * (Number(layer) + 1);
-                console.log("layer " + layer + ", x " + nodes[i].x);
                 nodes[i].y = this.canvas.height * .5 - (nodes.length - 1) * 30 + i * 60;
             }
         }

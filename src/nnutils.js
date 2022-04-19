@@ -62,7 +62,11 @@ export function distance(a, b, breedingOptions) {
     
     const E = excessGenes(a, b);
     const D = disjointGenes(a, b);
-    const N = Math.max(a.connections.length, b.connections.length);
+    let N;
+    if (a.connections.length < breedingOptions.maxGenomeSizeToDisregardNormalization && b.connections.length < breedingOptions.maxGenomeSizeToDisregardNormalization)
+        N = 1;
+    else
+        N = Math.max(a.connections.length, b.connections.length);
 
     let weightSum = 0;
     let weightCount = 0;
