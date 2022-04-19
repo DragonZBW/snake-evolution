@@ -55,9 +55,9 @@ class XOR extends HTMLElement {
                 const inputs = {
                     "IN 1": i / cols,
                     "IN 2": j / rows,
-                    "BIAS 1": 1
+                    "BIAS": 1
                 }
-                const output = this.nn.process(inputs)["OUT 1"];
+                const output = this.nn.process(inputs)["OUT"];
                 this.ctx.fillStyle = `rgba(0,0,0,${output})`;
                 this.ctx.strokeStyle = `rgba(0,0,0,.25)`;
                 this.ctx.lineWidth = .5;

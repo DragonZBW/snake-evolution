@@ -12,8 +12,8 @@ const xor = document.querySelector("xor-display");
 const nn = new NN(ConnectionEnabledInitializeFuncs.Disabled, ActivationFuncs.ModifiedSigmoid);
 nn.addInitialNode(NodeTypes.Input, "IN 1");
 nn.addInitialNode(NodeTypes.Input, "IN 2");
-nn.addInitialNode(NodeTypes.Bias, "BIAS 1");
-nn.addInitialNode(NodeTypes.Output, "OUT 1");
+nn.addInitialNode(NodeTypes.Bias, "BIAS");
+nn.addInitialNode(NodeTypes.Output, "OUT");
 nn.addHiddenNode([0, 1, 2], []);
 nn.addHiddenNode([0, 1, 2], []);
 nn.addHiddenNode([2, 4, 5], [3]);
@@ -21,11 +21,11 @@ nn.addHiddenNode([2, 4, 5], [3]);
 console.log(nn);
 
 const breedingOptions = new NNOptions();
-breedingOptions.newNeuronMutationRate = .01;
-breedingOptions.compatibilityThreshold = 10;
+// breedingOptions.newNeuronMutationRate = .01;
+// breedingOptions.compatibilityThreshold = 10;
 
-breedingOptions.weightMutationRate = .2;
-breedingOptions.uniformPerturbationRange = .02;
+breedingOptions.weightMutationRate = .1;
+breedingOptions.uniformPerturbationRange = .01;
 breedingOptions.newNeuronMutationRate = 0;
 breedingOptions.newConnectionMutationRate = 0;
 
@@ -38,19 +38,19 @@ xor.nn = population.networks[0];
 
 const xorProblem = [
     {
-        inputs: { "IN 1": 1, "IN 2": 1, "BIAS 1": 1 },
+        inputs: { "IN 1": 1, "IN 2": 1, "BIAS": 1 },
         output: 0
     },
     {
-        inputs: { "IN 1": 1, "IN 2": 0, "BIAS 1": 1 },
+        inputs: { "IN 1": 1, "IN 2": 0, "BIAS": 1 },
         output: 1
     },
     {
-        inputs: { "IN 1": 0, "IN 2": 0, "BIAS 1": 1 },
+        inputs: { "IN 1": 0, "IN 2": 0, "BIAS": 1 },
         output: 0
     },
     {
-        inputs: { "IN 1": 0, "IN 2": 1, "BIAS 1": 1 },
+        inputs: { "IN 1": 0, "IN 2": 1, "BIAS": 1 },
         output: 1
     }
 ];
@@ -63,9 +63,9 @@ const calcFitness = () => {
         let guesses = [];
         for (let problem of xorProblem) {
             const guess = network.process(problem.inputs);
-            const guessOutput = Math.round(guess["OUT 1"]);
+            const guessOutput = Math.round(guess["OUT"]);
             guesses.push(guessOutput);
-            sumFitness += Math.abs(guess["OUT 1"] - problem.output);
+            sumFitness += Math.abs(guess["OUT"] - problem.output);
         }
         sumFitness = 4 - sumFitness;
         sumFitness *= sumFitness;
@@ -135,6 +135,9 @@ document.querySelector("#btn-view-fittest").onclick = () => {
 
 // END NN TESTING
 
+const game = document.querySelector("snake-display");
+document.body.onkeydown = keyDown;
+
 // Various event callbacks
 document.querySelector("#btn-next").onclick = () => {
     displayID = (displayID + 1) % population.networks.length;
@@ -158,4 +161,29 @@ init();
 
 function init() {
    
-};
+}
+
+//movement controls
+function keyDown(event) {
+    //up
+    if (event.keyCode == 38) {
+        game.passInput("UP");
+    }
+
+    //down
+    if (event.keyCode == 40) {
+        game.passInput("DOWN");
+    }
+
+    //left
+    if (event.keyCode == 37) {
+        game.passInput("LEFT");
+    }
+
+    //right
+    if (event.keyCode == 39) {
+        game.passInput("RIGHT");
+    }
+
+    event.preventDefault();
+}

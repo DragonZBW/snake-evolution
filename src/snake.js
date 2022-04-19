@@ -52,12 +52,11 @@ class Snake extends HTMLElement {
 
         this.clearScreen = this.clearScreen.bind(this);
         this.checkAppleCollision = this.checkAppleCollision.bind(this);
-        this.drawApple =this.drawApple.bind(this);
+        this.drawApple = this.drawApple.bind(this);
         this.drawSnake = this.drawSnake.bind(this);
         this.drawScore = this.drawScore.bind(this);
         this.changeSnakePosition = this.changeSnakePosition.bind(this);
         this.drawGame = this.drawGame.bind(this);
-        this.keyDown = this.keyDown.bind(this);
     }
     
 
@@ -182,85 +181,39 @@ class Snake extends HTMLElement {
             this.snakeMiscVariables.score++;
         }
     }
-
-    //movement controls
-    keyDown(event) {
-        let {xVelocity, yVelocity} = this.snakeMiscVariables
-        //up
-        if (event.keyCode == 38) {
-            if (yVelocity == 1) {
-                event.preventDefault();
-                return;
-            }
-            this.snakeMiscVariables.yVelocity = -1;
-            this.snakeMiscVariables.xVelocity = 0;
-        }
-
-        //down
-        if (event.keyCode == 40) {
-            if (yVelocity == -1) {
-                event.preventDefault();
-                return;
-            }
-            this.snakeMiscVariables.yVelocity = 1;
-            this.snakeMiscVariables.xVelocity = 0;
-        }
-
-        //left
-        if (event.keyCode == 37) {
-            if (xVelocity == 1) {
-                event.preventDefault();
-                return;
-            }
-            this.snakeMiscVariables.yVelocity = 0;
-            this.snakeMiscVariables.xVelocity = -1;
-        }
-
-        //right
-        if (event.keyCode == 39) {
-            if (xVelocity == -1) {
-                event.preventDefault();
-                return;
-            }
-            this.snakeMiscVariables.yVelocity = 0;
-            this.snakeMiscVariables. xVelocity = 1;
-        }
-
-        event.preventDefault();
-    }
     
     //movement controls through string input
     passInput(direction){
-        if (direction == 38) {
-            if (yVelocity == 1) return;
+        if (direction == "UP") {
+            if (this.snakeMiscVariables.yVelocity == 1) return;
             this.snakeMiscVariables.yVelocity = -1;
             this.snakeMiscVariables.xVelocity = 0;
         }
 
         //down
-        if (direction == 40) {
-            if (yVelocity == -1) return;
+        if (direction == "DOWN") {
+            if (this.snakeMiscVariables.yVelocity == -1) return;
             this.snakeMiscVariables.yVelocity = 1;
             this.snakeMiscVariables.xVelocity = 0;
         }
 
         //left
-        if (direction == 37) {
-            if (xVelocity == 1) return;
+        if (direction == "LEFT") {
+            if (this.snakeMiscVariables.xVelocity == 1) return;
             this.snakeMiscVariables.yVelocity = 0;
             this.snakeMiscVariables.xVelocity = -1;
         }
 
         //right
-        if (direction == 39) {
-            if (xVelocity == -1) return;
+        if (direction == "RIGHT") {
+            if (this.snakeMiscVariables.xVelocity == -1) return;
             this.snakeMiscVariables.yVelocity = 0;
             this.snakeMiscVariables. xVelocity = 1;
         }
     }
+
     render() {
         this.drawGame();
-        document.body.addEventListener('keydown', this.keyDown);
     }
 }
 
