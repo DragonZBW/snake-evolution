@@ -184,6 +184,7 @@ export class NN {
 
     // Finishes the initialization process by generating data necessary to process inputs.
     updateNodeInputs() {
+        console.log("updating inputs of " + this.id);
         /* Generate data. In addition to the starting information from the genotype, each node needs to know
             - Its INPUT connections. The order in which nodes/connections are processed must be computed in reverse starting from the outputs,
               so knowing each node's inputs will allow this calculation to be much faster than searching through all the connections
@@ -314,7 +315,12 @@ export class NN {
 
                 // Connect the new node
                 this.addMutatedConnection(new NNConnection(oldConn.input, newNode.id, 1, true, NN.innovationNumber));
+
+                newNode.inputs.push(this.connections[this.connections.length - 1]);
+
                 this.addMutatedConnection(new NNConnection(newNode.id, oldConn.output, oldConn.weight, true, NN.innovationNumber));
+
+                this.nodes[oldConn.output].inputs.push(this.connections[this.connections.length - 1]);
             }
         }
 
@@ -336,37 +342,72 @@ export class NN {
                     disabledConnections[Math.floor(Math.random() * disabledConnections.length)].enabled = true;
                 }
             } else {
-                // FIXME: This occasionally results in duplicate connections or recursive connections
                 // First, make a list of all nodes in the network that have at least one other node that is not connected to them as an input
                 const availableNodes = [];
                 for (let node of this.nodes) {
+                    // Input nodes cannot have any inputs connected to them
                     if (node.type == NodeTypes.Input)
                         continue;
-                    let validInputCount = this.nodes.length - this.outputs.length;
-                    if (node.type == NodeTypes.Hidden)
-                        validInputCount--;
-                    if (node.inputs.length < validInputCount)
-                        availableNodes.push(node);
+                    
+                    const availableNode = {
+                        node: node,
+                        availableInputs: []
+                    };
+                    
+                    // Determine which nodes would be allowed to connect to this one
+                    for (let nodeB of this.nodes) {
+                        // Outputs cannot be used as inputs, and a node can't be connected to itself
+                        if (nodeB.type == NodeTypes.Output || nodeB.id == node.id)
+                            continue;
+                        
+                        // If the node already uses nodeB as an input, we can't add it again
+                        let found = false;
+                        for (let conn of node.inputs) {
+                            if (conn.input == nodeB.id) {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if(found)
+                            continue;
+                        
+                        // Check if connecting nodeB as an input would create a loop.
+                        const nodeHasInput = (nodeA, nodeB) => {
+                            console.log("checking if " + nodeA.id + " has " + nodeB.id + " as an input");
+                            if (nodeA.type == NodeTypes.Input)
+                                return false;
+                            
+                            for (let conn of nodeA.inputs) {
+                                console.log("checking connection with input " + conn.input);
+                                if (conn.input == nodeB.id)
+                                    return true;
+                            }
+                            for (let conn of nodeA.inputs) {
+                                if (nodeHasInput(this.nodes[conn.input], nodeB))
+                                    return true;
+                            }
+                            return false;
+                        };
+                        if (nodeHasInput(nodeB, node)) {
+                            console.log("it does!");
+                            continue;
+                        }
+                        console.log("it doesn't!");
+                        
+                        // All cases have been checked and the node is valid as an input, add it to the array
+                        availableNode.availableInputs.push(nodeB);
+                    }
+                    if(availableNode.availableInputs.length > 0)
+                        availableNodes.push(availableNode);
                 }
 
                 if (availableNodes.length > 0) {
                     // Choose a node from the list
                     const node = availableNodes[Math.floor(Math.random() * availableNodes.length)];
 
-                    // Make a list of all non-output nodes that are NOT in the node's inputs
-                    const availableInputs = [];
-                    for (let n of this.nodes) {
-                        if (n.type == NodeTypes.Output)
-                            continue;
-                        if (!node.inputs.includes(n))
-                            availableInputs.push(n);
-                    }
-
                     // Add a node from the availableInputs list as an input to node
-                    if (availableInputs.length > 0) {
-                        const input = availableInputs[Math.floor(Math.random() * availableInputs.length)];
-                        this.addMutatedConnection(new NNConnection(input.id, node.id, randomMinusOneToOne(), true, NN.innovationNumber));
-                    }
+                    const input = node.availableInputs[Math.floor(Math.random() * node.availableInputs.length)];
+                    this.addMutatedConnection(new NNConnection(input.id, node.node.id, randomMinusOneToOne(), true, NN.innovationNumber));
                 }
             }
         }
