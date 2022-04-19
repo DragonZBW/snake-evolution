@@ -81,7 +81,6 @@ export class NN {
         this.activationFunc = activationFunc;
 
         this.connectionInitializeMode = connectionInitializeMode;
-        this.initialized = false;
 
         this.output = undefined;
         this.expectedOutput = undefined;
@@ -122,8 +121,6 @@ export class NN {
     // Add an input or output node to the neural network.
     // This should only be called when first creating neural networks at the start of the population.
     addInitialNode(type, name) {
-        if (this.initialized)
-            throw "The NN has already finished initialization; can't add any more initial nodes!";
 
         // Ensure node type is input or output
         if (type == NodeTypes.Hidden)
@@ -186,29 +183,30 @@ export class NN {
     }
 
     // Finishes the initialization process by generating data necessary to process inputs.
-    finishInitialization() {
+    updateNodeInputs() {
         /* Generate data. In addition to the starting information from the genotype, each node needs to know
             - Its INPUT connections. The order in which nodes/connections are processed must be computed in reverse starting from the outputs,
               so knowing each node's inputs will allow this calculation to be much faster than searching through all the connections
               each time.
         */
 
+        for (let node of this.nodes) {
+            node.inputs = [];
+        }
+
         // For each connection, check the output and add the connection to that node's inputs array
         for (let c of this.connections) {
             const out = this.nodes[c.output];
-            out.inputs.push(c);
+            out.inputs.push(c.copy());
         }
-
-        this.initialized = true;
     }
 
     // Process a set of inputs. Inputs are processed using names as indices. Returns an object containing the outputs indexed by name.
     process(inputs) {
-        // The NN must have finished being initialized to process data (otherwise, the nodes will not have their inputs arrays set up)
-        if (!this.initialized)
-            throw "The NN has not finished initialization; can't process data!";
+        console.log(this.id + " processing inputs");
+        this.updateNodeInputs();
 
-        // Define a function for getting the value of a node. This will be used recursively to produce outputs for the netowrk.
+        // Define a function for getting the value of a node. This will be used recursively to produce outputs for the network.
         const getValue = (node) => {
             switch (node.type) {
                 case NodeTypes.Input:
@@ -269,7 +267,7 @@ export class NN {
 
     // Mutates this neural network. This DOES directly modify the neural network and doesn't create a new one.
     mutate(breedingOptions) {
-        this.finishInitialization();
+        this.updateNodeInputs();
 
         // Mutate weights?
         if (Math.random() < breedingOptions.weightMutationRate) {
@@ -321,56 +319,57 @@ export class NN {
         }
 
         // Mutate a new connection/enable a disabled connection?
-        // if (Math.random() < breedingOptions.newConnectionMutationRate) {
-        //     /* From http://nn.cs.utexas.edu/downloads/papers/stanley.ec02.pdf:
-        //        In the add connection mutation, a single new connection gene with a random weight is added connecting
-        //        two previously unconnected nodes. */
+        if (Math.random() < breedingOptions.newConnectionMutationRate) {
+            /* From http://nn.cs.utexas.edu/downloads/papers/stanley.ec02.pdf:
+               In the add connection mutation, a single new connection gene with a random weight is added connecting
+               two previously unconnected nodes. */
 
-        //     if (Math.random() < breedingOptions.enableDisabledConnectionRate) {
-        //         // Enable a disabled connection
-        //         const disabledConnections = [];
-        //         for (let conn of this.connections) {
-        //             if (!conn.enabled)
-        //                 disabledConnections.push(conn);
-        //         }
+            if (Math.random() < breedingOptions.enableDisabledConnectionRate) {
+                // Enable a disabled connection
+                const disabledConnections = [];
+                for (let conn of this.connections) {
+                    if (!conn.enabled)
+                        disabledConnections.push(conn);
+                }
 
-        //         if (disabledConnections.length > 0) {
-        //             disabledConnections[Math.floor(Math.random() * disabledConnections.length)].enabled = true;
-        //         }
-        //     } else {
-        //         // First, make a list of all nodes in the network that have at least one other node that is not connected to them as an input
-        //         const availableNodes = [];
-        //         for (let node of this.nodes) {
-        //             if (node.type == NodeTypes.Input)
-        //                 continue;
-        //             let validInputCount = this.nodes.length - this.outputs.length;
-        //             if (node.type == NodeTypes.Hidden)
-        //                 validInputCount--;
-        //             if (node.inputs.length < validInputCount)
-        //                 availableNodes.push(node);
-        //         }
+                if (disabledConnections.length > 0) {
+                    disabledConnections[Math.floor(Math.random() * disabledConnections.length)].enabled = true;
+                }
+            } else {
+                // FIXME: This occasionally results in duplicate connections or recursive connections
+                // First, make a list of all nodes in the network that have at least one other node that is not connected to them as an input
+                const availableNodes = [];
+                for (let node of this.nodes) {
+                    if (node.type == NodeTypes.Input)
+                        continue;
+                    let validInputCount = this.nodes.length - this.outputs.length;
+                    if (node.type == NodeTypes.Hidden)
+                        validInputCount--;
+                    if (node.inputs.length < validInputCount)
+                        availableNodes.push(node);
+                }
 
-        //         if (availableNodes.length > 0) {
-        //             // Choose a node from the list
-        //             const node = availableNodes[Math.floor(Math.random() * availableNodes.length)];
+                if (availableNodes.length > 0) {
+                    // Choose a node from the list
+                    const node = availableNodes[Math.floor(Math.random() * availableNodes.length)];
 
-        //             // Make a list of all non-output nodes that are NOT in the node's inputs
-        //             const availableInputs = [];
-        //             for (let n of this.nodes) {
-        //                 if (n.type == NodeTypes.Output)
-        //                     continue;
-        //                 if (!node.inputs.includes(n))
-        //                     availableInputs.push(n);
-        //             }
+                    // Make a list of all non-output nodes that are NOT in the node's inputs
+                    const availableInputs = [];
+                    for (let n of this.nodes) {
+                        if (n.type == NodeTypes.Output)
+                            continue;
+                        if (!node.inputs.includes(n))
+                            availableInputs.push(n);
+                    }
 
-        //             // Add a node from the availableInputs list as an input to node
-        //             if (availableInputs.length > 0) {
-        //                 const input = availableInputs[Math.floor(Math.random() * availableInputs.length)];
-        //                 this.addMutatedConnection(new NNConnection(input.id, node.id, randomMinusOneToOne(), true, NN.innovationNumber));
-        //             }
-        //         }
-        //     }
-        // }
+                    // Add a node from the availableInputs list as an input to node
+                    if (availableInputs.length > 0) {
+                        const input = availableInputs[Math.floor(Math.random() * availableInputs.length)];
+                        this.addMutatedConnection(new NNConnection(input.id, node.id, randomMinusOneToOne(), true, NN.innovationNumber));
+                    }
+                }
+            }
+        }
     }
 
     // Breed two neural networks together to create a new one.
@@ -431,7 +430,7 @@ export class NN {
             // Skip genes that both are missing
             if (!aConnections[i] && !bConnections[i])
                 continue;
-            
+
             if (i > aMaxInnovation && aMaxInnovation < bMaxInnovation && bConnections[i]) {
                 // Is excess (B)?
                 if (parentB.fitness > parentA.fitness || (parentB.fitness == parentA.fitness && Math.random() < .5)) {

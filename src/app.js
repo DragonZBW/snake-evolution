@@ -12,12 +12,11 @@ nn.addInitialNode(NodeTypes.Input, "IN 2");
 nn.addInitialNode(NodeTypes.Bias, "BIAS 1");
 nn.addInitialNode(NodeTypes.Bias, "BIAS 2");
 nn.addInitialNode(NodeTypes.Output, "OUT 1");
-nn.finishInitialization();
 
 const breedingOptions = new NNOptions();
 breedingOptions.compatibilityThreshold = 1.75;
 breedingOptions.newConnectionMutationRate = 1;
-breedingOptions.enableDisabledConnectionRate = 1;
+breedingOptions.enableDisabledConnectionRate = .1;
 
 let population = new Population(50, nn, breedingOptions);
 
@@ -71,6 +70,7 @@ const calcFitness = () => {
     }
     nnDisplay.nn = population.networks[0];
     nnDisplay.render();
+    console.log(population);
     setTimeout(() => {
         population.nextGeneration();
         calcFitness();
@@ -85,7 +85,6 @@ document.querySelector("#btn-next-gen").onclick = () => {
 
     nnDisplay.nn = population.networks[0];
     nnDisplay.render();
-    console.log(population);
 };
 
 // END NN TESTING

@@ -17,7 +17,7 @@ export default class Population {
         for (let i = 0; i < size; i++) {
             const nn = templateNN.copy();
             nn.randomizeConnectionWeights();
-            nn.finishInitialization();
+            nn.updateNodeInputs();
             nn.id = i;
             this.networks.push(nn);
         }
@@ -43,7 +43,7 @@ export default class Population {
             for (let i = 0; i < this.species.length; i++) {
                 const species = this.species[i];
                 const dist = Utils.distance(nn, species.representative, this.breedingOptions);
-                console.log(nn.id + " has a distance of " + dist + " to species " + i);
+                //console.log(nn.id + " has a distance of " + dist + " to species " + i);
                 if (dist < this.breedingOptions.compatibilityThreshold) {
                     species.add(nn);
                     nn.species = i;
@@ -139,7 +139,7 @@ export default class Population {
             offspringAllotments[index]++;
             totalAllotted = offspringAllotments.reduce((prev, curr) => prev + curr);
         }
-        console.log("offspring allotments", offspringAllotments);
+        //log("offspring allotments", offspringAllotments);
         // Loop through species and breed networks.
         for (let i = 0; i < offspringAllotments.length; i++) {
             // Get the allotted number of offspring for the species
@@ -186,7 +186,7 @@ export default class Population {
             // Create the allotted number of offspring by selecting networks to breed based on fitness
             for (let j = 0; j < allottedOffspring; j++) {
                 const breedMode = Math.random();
-               // if (breedMode < this.breedingOptions.asexualReproductionRate) {
+                // if (breedMode < this.breedingOptions.asexualReproductionRate) {
                     const selected = selectNetwork();
                     const newNetwork = this.species[i].networks[selected].copy();
                     newNetwork.id = newPopulation.length;
@@ -204,7 +204,8 @@ export default class Population {
         }
 
         for (let network of newPopulation)
-            network.finishInitialization();
+            network.updateNodeInputs();
+        
         this.networks = newPopulation;
         this.classifySpecies();
         NN.clearInnovationsThisGen();
