@@ -188,31 +188,45 @@ class Snake extends HTMLElement {
         let {xVelocity, yVelocity} = this.snakeMiscVariables
         //up
         if (event.keyCode == 38) {
-            if (yVelocity == 1) return;
+            if (yVelocity == 1) {
+                event.preventDefault();
+                return;
+            }
             this.snakeMiscVariables.yVelocity = -1;
             this.snakeMiscVariables.xVelocity = 0;
         }
 
         //down
         if (event.keyCode == 40) {
-            if (yVelocity == -1) return;
+            if (yVelocity == -1) {
+                event.preventDefault();
+                return;
+            }
             this.snakeMiscVariables.yVelocity = 1;
             this.snakeMiscVariables.xVelocity = 0;
         }
 
         //left
         if (event.keyCode == 37) {
-            if (xVelocity == 1) return;
+            if (xVelocity == 1) {
+                event.preventDefault();
+                return;
+            }
             this.snakeMiscVariables.yVelocity = 0;
             this.snakeMiscVariables.xVelocity = -1;
         }
 
         //right
         if (event.keyCode == 39) {
-            if (xVelocity == -1) return;
+            if (xVelocity == -1) {
+                event.preventDefault();
+                return;
+            }
             this.snakeMiscVariables.yVelocity = 0;
             this.snakeMiscVariables. xVelocity = 1;
         }
+
+        event.preventDefault();
     }
     
     //movement controls through string input
