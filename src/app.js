@@ -1,5 +1,6 @@
 // NN TESTING STUFF
 import "./nndisplay.js";
+import "./snake.js";
 import NNOptions from "./nnoptions.js";
 import { ActivationFuncs, ConnectionEnabledInitializeFuncs, NN, NodeTypes } from "./nn.js"
 import Population from "./population.js";
