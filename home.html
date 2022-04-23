@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -9,9 +10,45 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
         integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script type="module" src="./src/app.js"></script>
+    <style>
+        body {
+            background-color: #101010;
+        }
+    </style>
 </head>
+
 <body>
-    <h1 class="title">Snakes with Brains!!!</h1>
-    <a href="app.html">Let's go!</a>
+    <div class="columns is-flex-direction-column">
+        <app-header class="column is-narrow"></app-header>
+        <app-navbar class="column is-narrow"></app-navbar>
+
+        <div class="hero is-black p-2">
+            <div class="hero-head">
+                <p class="title has-text-centered has-text-warning">
+                    Snake with Brains!!!
+                </p>
+
+                <p class="has-text-centered">
+                    Snake Evolution is a...
+                </p>
+                <p class="has-text-centered">
+                    Click on the first button to get started!
+                </p>
+                <p class="has-text-centered">
+                    Check out how we managed to "evolve" Snakes by clicking on the green button!
+                </p>
+                <div class="has-text-centered">
+                    <button id="appPage" class="button is is-warning" onclick="window.location.href='./app.html'">Time to Play God!</button>
+                    <button id="favPage" class="button is is-success"
+                        onclick="window.location.href='./favorites.html'">How you do it?</button>
+                </div>
+                <img class="p-3" style="display: block; margin-left: auto; margin-right: auto; width:20%"
+                    src="images/demo.PNG" alt="snakeDemo">
+            </div>
+            <app-footer class="column is-narrow"></app-footer>
+        </div>
+    </div>
 </body>
+
 </html>

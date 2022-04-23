@@ -2,6 +2,9 @@
 import "./nndisplay.js";
 import "./snake.js";
 import "./xor.js";
+import "./navbar.js";
+import "./header.js";
+import "./footer.js";
 import NNOptions from "./nnoptions.js";
 import { ActivationFuncs, ConnectionEnabledInitializeFuncs, NN, NodeTypes } from "./nn.js"
 import Population from "./population.js";

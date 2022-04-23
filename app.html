@@ -11,20 +11,38 @@
         integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script type="module" src="./src/app.js"></script>
+    <style>
+        body {
+            background-color: 	#101010;
+          }
+    </style>
 </head>
 
 <body>
-    <h1 class="title">Snakes</h1>
-    <div>
-        <button class="button" id="btn-prev">Prev</button>
-        <button class="button" id="btn-next">Next</button>
-        <button class="button" id="btn-next-gen">Next Generation</button>
-        <button class="button" id="btn-pause">Pause/Play</button>
-        <button class="button" id="btn-view-fittest">View Fittest</button>
+    <div class="columns is-flex-direction-column">
+        <app-header class="column is-narrow"></app-header>
+        <app-navbar class="column is-narrow"></app-navbar>
+        <div class="hero is-black p-2">
+            <div class="hero-head">
+                <h1 class="title has-text-centered has-text-warning">Snakes</h1>
+            </div>
+            <div id="controls" class="columns is-hcentered is-vcentered">
+                <div class="column has-text-centered">
+                    <button class="button" id="btn-prev">Prev</button>
+                    <button class="button" id="btn-next">Next</button>
+                    <button class="button" id="btn-next-gen">Next Generation</button>
+                    <button class="button" id="btn-pause">Pause/Play</button>
+                    <button class="button" id="btn-view-fittest">View Fittest</button>
+                </div>
+            </div>
+            <div id="displays" class="p-3 is-centered" style="display: block; margin-left: auto; margin-right: auto; width:80%">
+                <xor-display></xor-display>
+                <snake-display></snake-display>
+                <nn-display></nn-display>
+            </div>
+        </div>
+        <app-footer class="column is-narrow"></app-footer>
     </div>
-    <xor-display></xor-display>
-    <snake-display></snake-display>
-    <nn-display></nn-display>
 </body>
 
 </html>
