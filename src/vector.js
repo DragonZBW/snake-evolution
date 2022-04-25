@@ -25,4 +25,25 @@ export default class Vector {
     times(scalar) {
         return new Vector(this.x * scalar, this.y * scalar);
     }
+
+    equals(other) {
+        return this.x == other.x && this.y == other.y;
+    }
+
+    // Get the distance to another vector.
+    distance(other) {
+        const dist = this.minus(other);
+        return dist.magnitude();
+    }
+
+    // Get the magnitude of the vector.
+    magnitude() {
+        return Math.sqrt(this.x * this.x + this.y * this.y);
+    }
+
+    // Sets the values of the vector.
+    set(x, y) {
+        this.x = x;
+        this.y = y;
+    }
 }

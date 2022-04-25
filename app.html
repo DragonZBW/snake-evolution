@@ -10,35 +10,74 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
         integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="./styles/main.css">
     <script type="module" src="./src/app.js"></script>
-    <style>
-        body {
-            background-color: 	#101010;
-          }
-    </style>
 </head>
 
-<body>
+<body class="has-background-black has-text-grey-light">
     <div class="columns is-flex-direction-column">
         <app-header class="column is-narrow"></app-header>
         <app-navbar class="column is-narrow"></app-navbar>
-        <div class="hero is-black p-2">
-            <div class="hero-head">
-                <h1 class="title has-text-centered has-text-warning">Snakes</h1>
-            </div>
-            <div id="controls" class="columns is-hcentered is-vcentered">
-                <div class="column has-text-centered">
-                    <button class="button" id="btn-prev">Prev</button>
-                    <button class="button" id="btn-next">Next</button>
-                    <button class="button" id="btn-next-gen">Next Generation</button>
-                    <button class="button" id="btn-pause">Pause/Play</button>
-                    <button class="button" id="btn-view-fittest">View Fittest</button>
+        <div class="columns">
+
+            <div id="displays" class="column border-right container px-6">
+                <h1 class="title has-text-warning">Simulation</h1>
+                <p id="generation-num"></p>
+                <div id="main-displays" class="columns px-0 mx-0 pt-2">
+                    <div class="column is-one-third px-0">
+                        <snake-display id="main-snake"></snake-display>
+                    </div>
+                    <div class="column is-two-thirds px-0">
+                        <nn-display></nn-display>
+                    </div>
+                </div>
+                <div id="secondary-displays" class="grid px-0 mx-0 is-hidden-mobile">
+
                 </div>
             </div>
-            <div id="displays" class="p-3 is-centered" style="display: block; margin-left: auto; margin-right: auto; width:80%">
-                <xor-display></xor-display>
-                <snake-display></snake-display>
-                <nn-display></nn-display>
+
+            <div id="controls" class="column is-two-fifths px-5">
+                <h1 class="title has-text-warning">Controls</h1>
+                <label class="label is-large has-text-grey-light">Playback/Viewer</label>
+                <div>
+                    <span class="multi-button">
+                        <button class="button" id="btn-prev">
+                            <span class="icon is-small">
+                                <i class="fas fa-angle-left"></i>
+                            </span>
+                            <span>Prev</span>
+                        </button><button class="button" id="btn-next">
+                            <span>Next</span>
+                            <span class="icon is-small">
+                                <i class="fas fa-angle-right"></i>
+                            </span>
+                        </button>
+                    </span>
+                    <button class="button" id="btn-step">
+                        <span class="icon is-small">
+                            <i class="fas fa-step-forward"></i>
+                        </span>
+                    </button>
+                    <button class="button" id="btn-pause">
+                        <span class="icon is-small">
+                            <i id="pause-button-icon" class="fas fa-pause"></i>
+                        </span>
+                    </button>
+                    <button class="button" id="btn-view-fittest">View Fittest</button>
+                    <button class="button" id="btn-view-fittest-living">View Fittest Living</button>
+                </div>
+                <div class="field is-grouped pt-2 mb-0">
+                    <label class="label has-text-grey-light" for="slider-speed">Sim Speed</label>
+                    <p class="control is-expanded">
+                        <input type="range" class="slider" min="1" max="100" value="1" id="slider-speed">
+                    </p>
+                </div>
+                <div class="field is-grouped pt-0">
+                    <label class="label checkbox has-text-grey-light" for="slider-speed">
+                        <input type="checkbox" id="cb-show-fittest-living">
+                        Always Show Fittest Living
+                    </label>
+                </div>
             </div>
         </div>
         <app-footer class="column is-narrow"></app-footer>

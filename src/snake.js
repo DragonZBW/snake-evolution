@@ -2,219 +2,223 @@
 Snake game tutorial used: https://www.youtube.com/watch?v=7Azlj0f9vas
 */
 
-const template = document.createElement("template");
-template.innerHTML = `
-<canvas width=400 height=400></canvas>
-`;
+import NN from "./nn.js";
+import Vector from "./vector.js";
 
-class SnakePart {
-    constructor(x, y) {
-        this.x = x;
-        this.y = y;
-    }
-}
-
-class Snake extends HTMLElement {
-    constructor() {
-        super();
-
-        this.attachShadow({ mode: "open" });
-        this.shadowRoot.appendChild(template.content.cloneNode(true));
-        this.board = this.shadowRoot.querySelector("canvas");
-        this.board.width = 400;
-        this.board.height = 400;
-        this.boardCtx = this.board.getContext("2d");
-        this.direction;
-
+// The logic for the snake game.
+export default class Snake {
+    constructor(starveTime = 200) {
         //snake variables
         this.snakeVariables = {
-            speed: 7,
             tileCount: 20,
-            tileSize: 10,
-            headX: 10,
-            headY: 10,
+            tileSize: .9,
+            headPos: new Vector(10, 10),
             snakeParts: [],
             tailLength: 2
-        }
+        };
 
         //snake apple variables
-        this.snakeAppleVariables = {
-            appleX: 5,
-            appleY: 5
-        }
+        this.apple = this.randomCoord();
+        this.timeWithoutApple = 0;
+        this.starveTime = starveTime;
+
+        this.direction = new Vector();
 
         //snake part class
-        this.snakeMiscVariables = {
-            xVelocity: 0,
-            yVelocity: 0,
-            score: 0
+        const rand = Math.random();
+        if (rand < .25) {
+            this.direction.set(1, 0);
+        } else if (rand < .5) {
+            this.direction.set(-1, 0);
+        } else if (rand < .75) {
+            this.direction.set(0, 1);
+        } else {
+            this.direction.set(0, -1);
         }
 
-        this.clearScreen = this.clearScreen.bind(this);
-        this.checkAppleCollision = this.checkAppleCollision.bind(this);
-        this.drawApple = this.drawApple.bind(this);
-        this.drawSnake = this.drawSnake.bind(this);
-        this.drawScore = this.drawScore.bind(this);
-        this.changeSnakePosition = this.changeSnakePosition.bind(this);
-        this.drawGame = this.drawGame.bind(this);
-    }
-    
+        this.nn = new NN(8, 32, 1);
+        this.nn.mutationRate = .1;
 
-    connectedCallback() {
-        this.render()
+        this.alive = true;
+        this.score = 0;
+        this.fitness = 0;
+
+        this.applesCollected = 0;
+
+        this.lifetime = 0;
     }
 
-    //game loop
-    drawGame() {
-        this.passInput(this.direction);
-        this.changeSnakePosition();
-        let result = this.isGameOver();
-        if (result) {
+    copy() {
+        const clone = new Snake();
+        clone.nn = this.nn.copy();
+        return clone;
+    }
+
+    mutate() {
+        this.nn.mutate();
+    }
+
+    update() {
+        if (!this.alive)
             return;
+        
+        // Get control from neural network
+        // const controls = this.nn.feedForward([
+        //     this.apple.x / this.snakeVariables.tileCount, this.apple.y / this.snakeVariables.tileCount,
+        //     1 - (this.snakeVariables.headPos.x / this.snakeVariables.tileCount / 2), 1 - (this.snakeVariables.headPos.y / this.snakeVariables.tileCount / 2),
+        //     1 - ((this.snakeVariables.tileCount - 1 - this.snakeVariables.headPos.x) / this.snakeVariables.tileCount / 2), 1 - ((this.snakeVariables.tileCount - 1 - this.snakeVariables.headPos.y) / this.snakeVariables.tileCount / 2),
+        //     this.direction.x, this.direction.y]);
+        
+        const controls = this.nn.feedForward([
+            this.snakeVariables.headPos.x / this.snakeVariables.tileCount, this.snakeVariables.headPos.y / this.snakeVariables.tileCount,
+            this.apple.x / this.snakeVariables.tileCount, this.apple.y / this.snakeVariables.tileCount,
+            this.direction.x, this.direction.y,
+            this.apple.x - this.snakeVariables.headPos.x, this.apple.y - this.snakeVariables.headPos.y
+        ]);
+
+        //console.log(controls);
+        // Set direction from control
+        let dir = 0;
+        if (controls[0] < .25)
+            dir = 0;
+        else if (controls[0] < .5)
+            dir = 1;
+        else if (controls[0] < .75)
+            dir = 2;
+        else
+            dir = 3;
+            
+        switch (dir) {
+            case 0:
+                this.passInput("UP");
+                break;
+            case 1:
+                this.passInput("DOWN");
+                break;
+            case 2:
+                this.passInput("LEFT");
+                break;
+            case 3:
+                this.passInput("RIGHT");
+                break;
         }
-        this.clearScreen();
+
+        this.timeWithoutApple++;
+
+        this.changeSnakePosition();
         this.checkAppleCollision();
-        this.drawApple();
-        this.drawSnake();
-        this.drawScore();
-        setTimeout(this.drawGame, 1000 / this.snakeVariables.speed);
+        if (this.isGameOver())
+            this.alive = false;
+    }
+
+    // Get a random coordinate in the board that is not touching the snake.
+    randomCoord() {
+        const rand = () => {
+            return Math.floor(Math.random() * this.snakeVariables.tileCount);
+        }
+        let coord;
+        do {
+            coord = new Vector(rand(), rand());
+        } while (this.snakeVariables.headPos.equals(coord) || this.snakeVariables.snakeParts.map((el) => el.equals(coord)).includes(true));
+        return coord;
     }
 
     //check if gameOver
     isGameOver() {
-        let gameOver = false;
-
-        //stop auto kill on start
-        if (this.snakeMiscVariables.yVelocity === 0 && this.snakeMiscVariables.xVelocity === 0) {
-            return false;
+        // starvation
+        if (this.timeWithoutApple > this.starveTime) {
+            this.score -= this.starveTime;
+            return true;
         }
-
+        
         //walls
-        if (this.snakeVariables.headX < 0) {
-            gameOver = true;
+        if (this.snakeVariables.headPos.x < 0) {
+            return true;
         }
-        else if (this.snakeVariables.headX === this.snakeVariables.tileCount) {
-            gameOver = true;
+        if (this.snakeVariables.headPos.x >= this.snakeVariables.tileCount) {
+            return true;
         }
-        else if (this.snakeVariables.headY < 0) {
-            gameOver = true;
+        if (this.snakeVariables.headPos.y < 0) {
+            return true;
         }
-        else if (this.snakeVariables.headY === this.snakeVariables.tileCount) {
-            gameOver = true;
+        if (this.snakeVariables.headPos.y >= this.snakeVariables.tileCount) {
+            return true;
         }
 
         //snake Body
         for (let i = 0; i < this.snakeVariables.snakeParts.length; i++) {
             let part = this.snakeVariables.snakeParts[i];
-            if (part.x === this.snakeVariables.headX && part.y === this.snakeVariables.headY) {
-                gameOver = true;
-                break;
+            if (part.equals(this.snakeVariables.headPos)) {
+                return true;
             }
         }
-
-        //game over text
-        if (gameOver) {
-            this.boardCtx.fillStyle = "white";
-            this.boardCtx.font = "50px Verdana";
-            this.boardCtx.fillText("Game Over!", this.board.width / 6.5, this.board.height / 2);
-        }
-
-        return gameOver;
     }
 
     //calculate snake movement
     changeSnakePosition() {
-        this.snakeVariables.headX = this.snakeVariables.headX + this.snakeMiscVariables.xVelocity;
-        this.snakeVariables.headY = this.snakeVariables.headY + this.snakeMiscVariables.yVelocity;
-    }
-
-    //draws the score to the screen
-    drawScore() {
-        this.boardCtx.fillStyle = "white";
-        this.boardCtx.font = "10px Verdana";
-        this.boardCtx.fillText("Score " + this.snakeMiscVariables.score, this.board.width - 50, 10);
-    }
-
-    //clear screen
-    clearScreen() {
-        this.boardCtx.fillStyle = "black";
-        this.boardCtx.fillRect(0, 0, this.board.width, this.board.height);
-    }
-
-    //draw the snake
-    drawSnake() {
-        const {snakeParts, headX, headY, tailLength, tileCount, tileSize} = this.snakeVariables
-
-        //add a snake part after collecting a fruit
-        this.boardCtx.fillStyle = "red";
-        for (let i = 0; i < snakeParts.length; i++) {
-            let part = snakeParts[i];
-            this.boardCtx.fillRect(part.x * tileCount, part.y * tileCount, tileSize, tileSize);
-        }
+        const { snakeParts, headPos, tailLength } = this.snakeVariables;
 
         //put an item at the end of the list next to the head
         //then remove the furthest item from the snake parts if it has more than our tail size 
-        this.snakeVariables.snakeParts.push(new SnakePart(headX, headY));
+        this.snakeVariables.snakeParts.push(new Vector(headPos.x, headPos.y));
         if (snakeParts.length > tailLength) {
             this.snakeVariables.snakeParts.shift();
         }
 
-        //snake head piece
-        this.boardCtx.fillRect(headX * tileCount, headY * tileCount, tileSize, tileSize);
-    }
+        this.snakeVariables.headPos.x += this.direction.x;
+        this.snakeVariables.headPos.y += this.direction.y;
 
-    //draw apple
-    drawApple() {
-        this.boardCtx.fillStyle = "green";
-        this.boardCtx.fillRect(this.snakeAppleVariables.appleX * this.snakeVariables.tileCount, this.snakeAppleVariables.appleY * this.snakeVariables.tileCount, this.snakeVariables.tileSize, this.snakeVariables.tileSize);
+        this.lifetime++;
+        this.score += 1 + this.lifetime / 25;
+        this.score += (1 - this.snakeVariables.headPos.distance(this.apple) / this.snakeVariables.tileCount) * 3;
+        
+        if (this.apple.x == this.snakeVariables.headPos.x) {
+            if ((this.apple.y > this.snakeVariables.headPos.y && this.direction.y == 1) ||
+                (this.apple.y < this.snakeVariables.headPos.y && this.direction.y == -1))
+                this.score += 5;
+        }
+        else if (this.apple.y == this.snakeVariables.headPos.y) {
+            if ((this.apple.x > this.snakeVariables.headPos.x && this.direction.x == 1) ||
+                (this.apple.x < this.snakeVariables.headPos.x && this.direction.x == -1))
+                this.score += 5;
+        }
     }
 
     //check if an apple is eaten
     checkAppleCollision() {
-        let {appleX, appleY} = this.snakeAppleVariables
-        let {headX, headY, tileCount} = this.snakeVariables
         //add new random apple if the previous is eaten, and increase tail length and score
-        if (appleX === headX && appleY === headY) {
-            this.snakeAppleVariables.appleX = Math.floor(Math.random() * tileCount);
-            this.snakeAppleVariables.appleY = Math.floor(Math.random() * tileCount);
+        if (this.snakeVariables.headPos.equals(this.apple)) {
+            this.apple = this.randomCoord();
             this.snakeVariables.tailLength++;
-            this.snakeMiscVariables.score++;
+            this.score += 800;
+            this.applesCollected++;
+            this.timeWithoutApple = 0;
         }
     }
-    
+
     //movement controls through string input
-    passInput(direction){
+    passInput(direction) {
         if (direction == "UP") {
-            if (this.snakeMiscVariables.yVelocity == 1) return;
-            this.snakeMiscVariables.yVelocity = -1;
-            this.snakeMiscVariables.xVelocity = 0;
+            if (this.direction.y == 1) return;
+            this.direction.set(0, -1);
         }
 
         //down
         if (direction == "DOWN") {
-            if (this.snakeMiscVariables.yVelocity == -1) return;
-            this.snakeMiscVariables.yVelocity = 1;
-            this.snakeMiscVariables.xVelocity = 0;
+            if (this.direction.y == -1) return;
+            this.direction.set(0, 1);
         }
 
         //left
         if (direction == "LEFT") {
-            if (this.snakeMiscVariables.xVelocity == 1) return;
-            this.snakeMiscVariables.yVelocity = 0;
-            this.snakeMiscVariables.xVelocity = -1;
+            if (this.direction.x == 1) return;
+            this.direction.set(-1, 0);
         }
 
         //right
         if (direction == "RIGHT") {
-            if (this.snakeMiscVariables.xVelocity == -1) return;
-            this.snakeMiscVariables.yVelocity = 0;
-            this.snakeMiscVariables. xVelocity = 1;
+            if (this.direction.x == -1) return;
+            this.direction.set(1, 0);
         }
     }
-
-    render() {
-        this.drawGame();
-    }
 }
-
-customElements.define("snake-display", Snake);

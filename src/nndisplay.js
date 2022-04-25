@@ -1,9 +1,15 @@
-import { NN, NodeTypes } from "./nn.js";
+import "./nn.js";
 import Vector from "./vector.js";
 
 const template = document.createElement("template");
 template.innerHTML = `
-<canvas width=700 height=400></canvas>
+<style>
+canvas {
+    display: block;
+    width: 100%;
+}
+</style>
+<canvas width=800 height=400></canvas>
 `;
 
 // A canvas that will display a visualization of a neural network.
@@ -109,11 +115,11 @@ class NNDisplay extends HTMLElement {
 
         // Draw the circle
         this.ctx.beginPath();
-        this.ctx.arc(x, y, 12, 0, Math.PI * 2, false);
+        this.ctx.arc(x, y, 8, 0, Math.PI * 2, false);
         this.ctx.closePath();
         this.ctx.fillStyle = color;
         this.ctx.strokeStyle = "#122C34";
-        this.ctx.lineWidth = 2;
+        this.ctx.lineWidth = 1;
         this.ctx.fill();
         this.ctx.stroke();
 
@@ -169,95 +175,69 @@ class NNDisplay extends HTMLElement {
         this.ctx.translate(-this.canvas.width / 2, -this.canvas.height / 2);
         this.ctx.translate(-this.camPos.x, -this.camPos.y);
 
-        const inputCount = this.nn.inputs.length - 1;
-        let curInput = 0;
-        const outputCount = this.nn.outputs.length - 1;
-        let curOutput = 0;
-        const hiddenCount = this.nn.nodes.length - this.nn.inputs.length - this.nn.outputs.length;
-        let curHidden = 0;
+        // INPUT COLOR #E85D75
+        // OUTPUT COLOR #224870
+        // HIDDEN COLOR #F9C80E
 
-        const hiddenLayerNodes = [];
+        const connections = [];
+        for (let i = 0; i < this.nn.connections.length; i++) {
+            const conn = this.nn.connections[i];
+            connections.push({ source: this.nn.getNodeIndex(conn.input.id), target: this.nn.getNodeIndex(conn.output.id), weight: conn.weight, enabled: conn.enabled });
+        }
 
-        // Determine positions of nodes on canvas
-        const nodeDrawInf = [];
+        const layerNodeCounts = [];
+        for (let i = 0; i < this.nn.layers; i++) {
+            let count = 0;
+            for (let j = 0; j < this.nn.nodes.length; j++) {
+                if (this.nn.nodes[j].layer == i)
+                    count++;
+            }
+            layerNodeCounts.push(count);
+        }
+
+        const layerNodesDone = [];
+        for (let i = 0; i < this.nn.layers; i++)
+            layerNodesDone.push(0);
+
+        const nodes = [];
+        const inputX = this.canvas.width * 0.2;
+        const outputX = this.canvas.width - (this.canvas.width * 0.2);
         for (let i = 0; i < this.nn.nodes.length; i++) {
-
-            const node = this.nn.nodes[i];
-
-            // draw input nodes on left side
-            if (node.type == NodeTypes.Input) {
-                nodeDrawInf.push({
-                    x: 40,
-                    y: inputCount == 0 ?
-                        this.canvas.height * .5 :
-                        this.canvas.height * .25 + (curInput * this.canvas.height * .5 / inputCount),
-                    color: "#E85D75",
-                    label: node.name,
-                    textAlign: "right"
-                });
-                curInput++;
-                // draw output nodes on right side
-            } else if (node.type == NodeTypes.Output) {
-                nodeDrawInf.push({
-                    x: this.canvas.width - 40,
-                    y: outputCount == 0 ?
-                        this.canvas.height * .5 :
-                        this.canvas.height * .25 + (curOutput * this.canvas.height * .5 / outputCount),
-                    color: "#224870",
-                    label: node.name,
-                    textAlign: "left"
-                });
-                curOutput++;
-                // draw hidden nodes
+            const node = this.nn.nodes[i].copy();
+            if (node.layer == 0) {
+                node.x = inputX;
+                node.y = ((this.canvas.height / this.nn.inputCount) * node.id) + (this.canvas.height / this.nn.inputCount) / 2;
+            } else if (node.isOutput) {
+                node.x = outputX;
+                node.y = ((this.canvas.height / this.nn.outputCount) * (node.id - this.nn.inputCount)) + (this.canvas.height / this.nn.outputCount) / 2;
             } else {
-                const getNodeLayer = (node) => {
-                    let layer = 0;
-                    for (let input of node.inputs) {
-                        const n = this.nn.nodes[input.input];
-                        if (n.type == NodeTypes.Hidden) {
-                            const tempLayer = 1 + getNodeLayer(n);
-                            if (tempLayer > layer)
-                                layer = tempLayer;
-                        }
-                    }
-                    return layer;
-                };
-                const layer = getNodeLayer(node);
-                if (!hiddenLayerNodes[layer])
-                    hiddenLayerNodes[layer] = [];
-                hiddenLayerNodes[layer].push({
-                    x: undefined,
-                    y: undefined,
-                    color: "#F9C80E"
-                });
-                nodeDrawInf.push(hiddenLayerNodes[layer][hiddenLayerNodes[layer].length - 1]);
+                node.x = lerp(inputX, outputX, 1 - node.layer / (this.nn.layers - 1));
+                node.y = ((this.canvas.height / layerNodeCounts[node.layer]) * layerNodesDone[node.layer]) + (this.canvas.height / layerNodeCounts[node.layer]) / 2;
+                layerNodesDone[node.layer]++;
             }
+
+            nodes.push(node);
         }
 
-        // determine positions for hidden nodes
-        for (let layer in hiddenLayerNodes) {
-            const nodes = hiddenLayerNodes[layer];
-
-            for (let i = 0; i < nodes.length; i++) {
-                nodes[i].x = 40 + (this.canvas.width - 80) / (hiddenLayerNodes.length + 1) * (Number(layer) + 1);
-               //nodes[i].x = 40 + 40 * (Number(layer) + 1);
-                nodes[i].y = this.canvas.height * .5 - (nodes.length - 1) * 30 + i * 60;
-            }
-        }
-
-        // draw connections
-        for (let conn of this.nn.connections) {
-            if (!conn.enabled)
+        for (let c of connections) {
+            if (!c.enabled)
                 continue;
 
-            const inputNode = nodeDrawInf[conn.input];
-            const outputNode = nodeDrawInf[conn.output];
-            this.drawConnection(inputNode.x, inputNode.y, outputNode.x, outputNode.y, conn.weight);
+            let input, output;
+            for (let n of nodes) {
+                if (n.id == c.source)
+                    input = n;
+                if (n.id == c.target)
+                    output = n;
+                if (input && output)
+                    break;
+            }
+            this.drawConnection(input.x, input.y, output.x, output.y, c.weight);
         }
 
-        // draw nodes
-        for (let inf of nodeDrawInf)
-            this.drawNode(inf.x, inf.y, inf.color, inf.label, inf.textAlign);
+        for (let n of nodes) {
+            this.drawNode(n.x, n.y, n.isOutput ? "#224870" : n.layer == 0 ? "#E85D75" : "#F9C80E");
+        }
 
         this.ctx.restore();
 
@@ -266,11 +246,11 @@ class NNDisplay extends HTMLElement {
         this.ctx.textBaseline = "top";
         this.ctx.font = "14px Helvetica";
         this.ctx.fillStyle = "black";
-        this.ctx.fillText("NN " + this.nn.id + ", SPECIES " + this.nn.species + ", FITNESS " + (Math.round(this.nn.fitness * 1000) / 1000), 2, 2);
-        this.ctx.fillText("OUTPUT " + this.nn.output + ", EXPECTED " + this.nn.expectedOutput, 2, 17);
+        this.ctx.fillText("NN " + this.nn.id + ", SCORE " + this.nn.score, 2, 2);
 
         this.ctx.textAlign = "right";
-        this.ctx.fillText("GEN " + NN.gen + ", MAX FITNESS " + (Math.round(NN.highestFitnessThisGen * 1000) / 1000), this.canvas.width - 2, 2);
+        //this.ctx.fillText("GEN " + this..gen + ", MAX FITNESS " + (Math.round(NN.highestFitnessThisGen * 1000) / 1000), this.canvas.width - 2, 2);
+
         this.ctx.restore();
     }
 }

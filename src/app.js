@@ -1,192 +1,164 @@
 // NN TESTING STUFF
 import "./nndisplay.js";
-import "./snake.js";
-import "./xor.js";
-import "./navbar.js";
-import "./header.js";
-import "./footer.js";
-import NNOptions from "./nnoptions.js";
-import { ActivationFuncs, ConnectionEnabledInitializeFuncs, NN, NodeTypes } from "./nn.js"
+import "./snakedisplay.js";
+import Snake from "./snake.js";
 import Population from "./population.js";
+import "./init.js";
 
 const nnDisplay = document.querySelector("nn-display");
-const xor = document.querySelector("xor-display");
+const snakeDisplay = document.querySelector("snake-display");
+const generationNum = document.querySelector("#generation-num");
 
-const nn = new NN(ConnectionEnabledInitializeFuncs.Disabled, ActivationFuncs.ModifiedSigmoid);
-nn.addInitialNode(NodeTypes.Input, "IN 1");
-nn.addInitialNode(NodeTypes.Input, "IN 2");
-nn.addInitialNode(NodeTypes.Bias, "BIAS");
-nn.addInitialNode(NodeTypes.Output, "OUT");
-nn.addHiddenNode([0, 1, 2], []);
-nn.addHiddenNode([0, 1, 2], []);
-nn.addHiddenNode([2, 4, 5], [3]);
-nn.addHiddenNode([2, 4, 5], [3]);
-console.log(nn);
+const population = new Population(() => new Snake(), 1000);
+snakeDisplay.logic = population.players[0];
+let steps = 1;
 
-const breedingOptions = new NNOptions();
-// breedingOptions.newNeuronMutationRate = .01;
-// breedingOptions.compatibilityThreshold = 10;
+let alwaysShowFittestLiving = false;
 
-breedingOptions.weightMutationRate = .1;
-breedingOptions.uniformPerturbationRange = .01;
-breedingOptions.newNeuronMutationRate = 0;
-breedingOptions.newConnectionMutationRate = 0;
+generationNum.innerHTML = "Generation: " + population.generation + ", Alive: " + population.aliveCount;
 
-let population = new Population(150, nn, breedingOptions);
+const secondaryDisplaysParent = document.querySelector("#secondary-displays");
 
-let displayID = 0;
-
-nnDisplay.nn = population.networks[0];
-xor.nn = population.networks[0];
-
-const xorProblem = [
-    {
-        inputs: { "IN 1": 1, "IN 2": 1, "BIAS": 1 },
-        output: 0
-    },
-    {
-        inputs: { "IN 1": 1, "IN 2": 0, "BIAS": 1 },
-        output: 1
-    },
-    {
-        inputs: { "IN 1": 0, "IN 2": 0, "BIAS": 1 },
-        output: 0
-    },
-    {
-        inputs: { "IN 1": 0, "IN 2": 1, "BIAS": 1 },
-        output: 1
-    }
-];
-
-let running = false;
-
-const calcFitness = () => {
-    population.networks.forEach((network) => {
-        let sumFitness = 0;
-        let guesses = [];
-        for (let problem of xorProblem) {
-            const guess = network.process(problem.inputs);
-            const guessOutput = Math.round(guess["OUT"]);
-            guesses.push(guessOutput);
-            sumFitness += Math.abs(guess["OUT"] - problem.output);
-        }
-        sumFitness = 4 - sumFitness;
-        sumFitness *= sumFitness;
-        if (sumFitness > 15.75) {
-            console.log(network.id + " FOUND THE ANSWER!");
-            return true;
-        }
-        network.assignFitness(sumFitness, population.speciesOf(network).networks.length);
-        network.output = "[" + guesses.join() + "]";
-        network.expectedOutput = "[" + xorProblem.map((prob) => prob.output).join() + "]";
-    });
-    let maxFitness = 0;
-    for (let network of population.networks) {
-        if (network.fitness > maxFitness) {
-            NN.highestFitnessThisGen = network.fitness;
-        }
-    }
-    nnDisplay.nn = population.networks[0];
-    nnDisplay.render();
-    xor.nn = population.networks[0];
-    xor.render();
-    console.log(population);
-    if (!running)
-        return;
-    setTimeout(() => {
-        if (running) {
-            population.nextGeneration();
-            calcFitness();
-        }
-    }, 50);
+const secondaryDisplays = [];
+for (let i = 0; i < 20; i++) {
+    const snakeDisp = document.createElement("snake-display");
+    snakeDisp.logic = population.players[i + 1];
+    snakeDisp.classList.add("secondary-snake");
+    //snakeDisp.classList.add("column")
+    snakeDisp.setWidth(200);
+    const div = document.createElement("div");
+    div.classList.add("column");
+    div.appendChild(snakeDisp)
+    secondaryDisplaysParent.appendChild(snakeDisp);
+    secondaryDisplays.push(snakeDisp);
 }
 
-setTimeout(() => {
-    running = true;
-    calcFitness();
-}, 500);
+let displayID = 0;
+let running = true;
 
-document.querySelector("#btn-next-gen").onclick = () => {
-    population.nextGeneration();
-    calcFitness();
+const loop = () => {
+    for (let i = 0; i < steps; i++) {
+        population.update();
+        if (population.aliveCount == 0) {
+            population.nextGeneration();
+            displayID = 0;
+        }
+        snakeDisplay.logic = population.players[displayID];
+    }
+    for (let i = 0; i < 20; i++) {
+        secondaryDisplays[i].logic = population.players[i + 1];
+        secondaryDisplays[i].render();
+    }
 
-    nnDisplay.nn = population.networks[0];
-    xor.nn = population.networks[0];
-    nnDisplay.render();
-    xor.render();
+    if (alwaysShowFittestLiving) {
+        let fittest = 0;
+        for (let i = 1; i < population.size; i++) {
+            if (!population.players[i].alive)
+                continue;
+            if (population.players[i].score > population.players[fittest].score)
+                fittest = i;
+        }
+        displayID = fittest;
+        snakeDisplay.logic = population.players[displayID];
+    }
+
+    snakeDisplay.render();
+    generationNum.innerHTML = "Generation " + population.generation + ", Alive: " + population.aliveCount;
+
+    if (running)
+        setTimeout(loop, 1000 / 60);
+};
+
+loop();
+
+document.querySelector("#btn-step").onclick = () => {
+    running = false;
+    document.querySelector("#pause-button-icon").classList.remove("fa-pause");
+    document.querySelector("#pause-button-icon").classList.add("fa-play");
+    loop();
 };
 
 document.querySelector("#btn-pause").onclick = () => {
     running = !running;
+    if (running)
+        loop();
+
     if (running) {
-        calcFitness();
+        document.querySelector("#pause-button-icon").classList.remove("fa-play");
+        document.querySelector("#pause-button-icon").classList.add("fa-pause");
+    } else {
+        document.querySelector("#pause-button-icon").classList.remove("fa-pause");
+        document.querySelector("#pause-button-icon").classList.add("fa-play");
     }
 };
 
 document.querySelector("#btn-view-fittest").onclick = () => {
-    let fittestIndex = 0;
-    for (let i = 0; i < population.networks.length; i++) {
-        if (population.networks[i].fitness > population.networks[fittestIndex].fitness)
-            fittestIndex = i;
+    let fittest = 0;
+    for (let i = 1; i < population.size; i++) {
+        if (population.players[i].score > population.players[fittest].score)
+            fittest = i;
     }
-    displayID = fittestIndex;
-    nnDisplay.nn = population.networks[displayID];
-    nnDisplay.render();
-    xor.nn = population.networks[displayID];
-    xor.render();
+    displayID = fittest;
+    snakeDisplay.logic = population.players[displayID];
+    snakeDisplay.render();
 };
 
-// END NN TESTING
+document.querySelector("#btn-view-fittest-living").onclick = () => {
+    let fittest = 0;
+    for (let i = 1; i < population.size; i++) {
+        if (!population.players[i].alive)
+            continue;
+        if (population.players[i].score > population.players[fittest].score)
+            fittest = i;
+    }
+    displayID = fittest;
+    snakeDisplay.logic = population.players[displayID];
+    snakeDisplay.render();
+};
 
-const game = document.querySelector("snake-display");
-document.body.onkeydown = keyDown;
-
-// Various event callbacks
 document.querySelector("#btn-next").onclick = () => {
-    displayID = (displayID + 1) % population.networks.length;
-    nnDisplay.nn = population.networks[displayID];
-    nnDisplay.render();
-    xor.nn = population.networks[displayID];
-    xor.render();
+    displayID = (displayID + 1) % population.size;
+    snakeDisplay.logic = population.players[displayID];
+    snakeDisplay.render();
 };
 document.querySelector("#btn-prev").onclick = () => {
     displayID--;
     if (displayID < 0)
-        displayID = population.networks.length - 1;
-    nnDisplay.nn = population.networks[displayID];
-    nnDisplay.render();
-    xor.nn = population.networks[displayID];
-    xor.render();
+        displayID = population.size - 1;
+    snakeDisplay.logic = population.players[displayID];
+    snakeDisplay.render();
 };
 
+document.querySelector("#slider-speed").oninput = (e) => {
+    steps = e.target.value;
+};
 
-init();
+document.querySelector("#cb-show-fittest-living").onclick = (e) => {
+    alwaysShowFittestLiving = e.target.checked;
+};
 
-function init() {
-   
-}
+// document.body.onkeydown = keyDown;
+// //movement controls
+// function keyDown(event) {
+//     //up
+//     if (event.keyCode == 38) {
+//         game.passInput("UP");
+//     }
 
-//movement controls
-function keyDown(event) {
-    //up
-    if (event.keyCode == 38) {
-        game.passInput("UP");
-    }
+//     //down
+//     if (event.keyCode == 40) {
+//         game.passInput("DOWN");
+//     }
 
-    //down
-    if (event.keyCode == 40) {
-        game.passInput("DOWN");
-    }
+//     //left
+//     if (event.keyCode == 37) {
+//         game.passInput("LEFT");
+//     }
 
-    //left
-    if (event.keyCode == 37) {
-        game.passInput("LEFT");
-    }
+//     //right
+//     if (event.keyCode == 39) {
+//         game.passInput("RIGHT");
+//     }
 
-    //right
-    if (event.keyCode == 39) {
-        game.passInput("RIGHT");
-    }
-
-    event.preventDefault();
-}
+//     event.preventDefault();
+// }
