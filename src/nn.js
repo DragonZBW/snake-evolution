@@ -43,6 +43,7 @@ export default class NN {
         clone.biasH = this.biasH.copy();
         clone.biasO = this.biasO.copy();
         clone.learningRate = this.learningRate;
+        clone.mutationRate = this.mutationRate;
         return clone;
     }
 

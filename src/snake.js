@@ -39,6 +39,8 @@ export default class Snake {
         this.nn = new NN(8, 32, 1);
         this.nn.mutationRate = .1;
 
+        this.id = 0;
+
         this.alive = true;
         this.score = 0;
         this.fitness = 0;

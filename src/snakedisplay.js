@@ -47,9 +47,11 @@ class SnakeDisplay extends HTMLElement {
         this.boardCtx.save();
         this.boardCtx.fillStyle = "white";
         this.boardCtx.font = (this.board.width / 30) + "px Verdana";
-        this.boardCtx.textAlign = "right";
         this.boardCtx.textBaseline = "top";
-        this.boardCtx.fillText("Score " + Math.floor(this.logic.score) + "\n" + this.logic.applesCollected + " Apples", this.board.width * .975, this.board.height * .025);
+        this.boardCtx.textAlign = "left";
+        this.boardCtx.fillText("ID " + this.logic.id, this.board.width * .025, this.board.height * .025);
+        this.boardCtx.textAlign = "right";
+        this.boardCtx.fillText("Score " + Math.floor(this.logic.score), this.board.width * .975, this.board.height * .025);
         this.boardCtx.fillText(this.logic.applesCollected + " Apples", this.board.width * .975, this.board.height * .025 + this.board.width / 30 + 2);
         this.boardCtx.restore();
     }

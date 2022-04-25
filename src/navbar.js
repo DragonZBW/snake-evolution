@@ -54,7 +54,7 @@ class Navbar extends HTMLElement {
                 let href = menu.href.split("/");
                 let currentHref = href[href.length - 1];
                 if(pathName === currentHref) {
-                    menu.style.background = "hsl(48, 100%, 67%)";
+                    menu.classList.add("has-background-warning", "has-text-grey-dark");
                 }
             })
         })

@@ -3,8 +3,10 @@ export default class Population {
     // Construct a population. Each player is initialized using creationFunc.
     constructor(creationFunc, populationSize) {
         this.players = [];
-        for (let i = 0; i < populationSize; i++)
+        for (let i = 0; i < populationSize; i++) {
             this.players.push(creationFunc());
+            this.players[i].id = i;
+        }
         this.size = populationSize;
 
         this.aliveCount = this.size;
@@ -20,6 +22,22 @@ export default class Population {
                 continue;
             if (this.players[i].score > this.players[fittest].score)
                 fittest = i;
+        }
+        return fittest;
+    }
+
+    // Get an array of the top players in the population.
+    getFittestGroup(count, allowDead = true) {
+        let fittest = [];
+        for (let n = 0; n < count; n++) {
+            fittest.push(0);
+            for (let i = 1; i < this.size; i++) {
+                if (!this.players[i].alive && !allowDead)
+                    continue;
+                if (this.players[i].score > this.players[fittest[n]].score && !fittest.includes(i)) {
+                    fittest[n] = i;
+                }
+            }
         }
         return fittest;
     }
@@ -58,6 +76,7 @@ export default class Population {
             const child = selectedPlayer.copy();
             child.mutate();
             nextGen.push(child);
+            nextGen[i].id = i;
         }
 
         this.players = nextGen;

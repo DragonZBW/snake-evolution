@@ -11,9 +11,15 @@ const nnDisplay = document.querySelector("nn-display");
 const snakeDisplay = document.querySelector("snake-display");
 const generationNum = document.querySelector("#generation-num");
 
-let population = new Population(() => new Snake(), 1000);
+let population = new Population(() => {
+    const snake = new Snake();
+    snake.nn.mutationRate = document.querySelector("#slider-mutation-rate").value;
+    return snake;
+}, 1000);
 snakeDisplay.logic = population.players[0];
 let steps = 1;
+
+let secondaryDisplayMode = "First";
 
 let alwaysShowFittestLiving = false;
 
@@ -43,13 +49,42 @@ const loop = () => {
         population.update();
         if (population.aliveCount == 0) {
             population.nextGeneration();
+            console.log(population.players[i].nn.mutationRate);
             displayID = 0;
         }
         snakeDisplay.logic = population.players[displayID];
     }
-    for (let i = 0; i < 20; i++) {
-        secondaryDisplays[i].logic = population.players[i + 1];
-        secondaryDisplays[i].render();
+    switch (secondaryDisplayMode) {
+        case "First":
+            for (let i = 0; i < 20; i++) {
+                secondaryDisplays[i].logic = population.players[i];
+                secondaryDisplays[i].render();
+            }
+            break;
+        case "Fittest":
+            const fittest = population.getFittestGroup(20);
+            for (let i = 0; i < 20; i++) {
+                secondaryDisplays[i].logic = population.players[fittest[i]];
+                secondaryDisplays[i].render();
+            }
+            break;
+        case "First Alive":
+            let count = 0;
+            for (let i = 0; i < population.size && count < 20; i++) {
+                if (population.players[i].alive) {
+                    secondaryDisplays[count].logic = population.players[i];
+                    secondaryDisplays[count].render();
+                    count++;
+                }
+            }
+            break;
+        case "Fittest Alive":
+            const fittestAlive = population.getFittestGroup(20, false);
+            for (let i = 0; i < 20; i++) {
+                secondaryDisplays[i].logic = population.players[fittestAlive[i]];
+                secondaryDisplays[i].render();
+            }
+            break;
     }
 
     if (alwaysShowFittestLiving) {
@@ -63,6 +98,9 @@ const loop = () => {
     if (running)
         setTimeout(loop, 1000 / 60);
 };
+
+document.querySelector("#label-sim-speed").innerHTML = "Sim Speed (" + document.querySelector("#slider-speed").value + ")";
+document.querySelector("#label-mutation-rate").innerHTML = "Mutation Rate (" + document.querySelector("#slider-mutation-rate").value + ")";
 
 loop();
 
@@ -113,6 +151,7 @@ document.querySelector("#btn-prev").onclick = () => {
 };
 
 document.querySelector("#slider-speed").oninput = (e) => {
+    document.querySelector("#label-sim-speed").innerHTML = "Sim Speed (" + e.target.value + ")";
     steps = e.target.value;
 };
 
@@ -120,9 +159,35 @@ document.querySelector("#cb-show-fittest-living").onclick = (e) => {
     alwaysShowFittestLiving = e.target.checked;
 };
 
+document.querySelector("#select-secondary-display-mode").onchange = (e) => {
+    secondaryDisplayMode = e.target.value;
+    if (secondaryDisplayMode == "First") {
+        for (let i = 0; i < 20; i++) {
+            secondaryDisplays[i].logic = population.players[i];
+            secondaryDisplays[i].render();
+        }
+    }
+};
+
+document.querySelector("#slider-mutation-rate").oninput = (e) => {
+    let val = e.target.value + "";
+    if (val.length == 3)
+        val += "0";
+    if (val.length == 1)
+        val += ".00";
+    document.querySelector("#label-mutation-rate").innerHTML = "Mutation Rate (" + val + ")";
+    for (let i = 0; i < population.size; i++) {
+        population.players[i].nn.mutationRate = e.target.value;
+    }
+};
+
 document.querySelector("#btn-save-fittest").onclick = () => {
     const fittestNN = population.getFittest();
     download("nn.json", JSON.stringify(population.players[fittestNN].nn));
+};
+
+document.querySelector("#btn-save-current").onclick = () => {
+    download("nn.json", JSON.stringify(population.players[displayID].nn));
 };
 
 document.querySelector("#btn-load-nn").onclick = (e) => {

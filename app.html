@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="has-background-black">
 
 <head>
     <meta charset="UTF-8">
@@ -14,11 +14,11 @@
     <script type="module" src="./src/app.js"></script>
 </head>
 
-<body class="has-background-black has-text-grey-light">
+<body class="has-text-grey-light">
     <div class="columns is-flex-direction-column">
         <app-header class="column is-narrow"></app-header>
         <app-navbar class="column is-narrow"></app-navbar>
-        <div class="columns px-0">
+        <div class="columns px-0 mb-0">
 
             <div id="displays" class="column border-right container px-6">
                 <h1 class="title has-text-warning">Simulation</h1>
@@ -38,69 +38,135 @@
 
             <div id="controls" class="column is-two-fifths px-5 mr-5">
                 <h1 class="title has-text-warning">Controls</h1>
+
+                <!-- Playback and viewer controls -->
                 <label class="label is-large has-text-grey-light">Playback/Viewer</label>
-                <div>
-                    <span class="multi-button">
-                        <button class="button" id="btn-prev">
+                <div class="level mb-0">
+                    <span class="level-left">
+                        <span class="multi-button level-item">
+                            <button class="button is-small" id="btn-prev">
+                                <span class="icon is-small mr-0">
+                                    <i class="fas fa-angle-left"></i>
+                                </span>
+                                <span>Prev</span>
+                            </button><button class="button is-small" id="btn-next">
+                                <span>Next</span>
+                                <span class="icon is-small ml-0">
+                                    <i class="fas fa-angle-right"></i>
+                                </span>
+                            </button>
+                        </span>
+                    </span>
+                    <span class="level-item">
+                        <button class="button is-small mr-1" id="btn-step">
                             <span class="icon is-small">
-                                <i class="fas fa-angle-left"></i>
+                                <i class="fas fa-step-forward"></i>
                             </span>
-                            <span>Prev</span>
-                        </button><button class="button" id="btn-next">
-                            <span>Next</span>
+                        </button>
+                        <button class="button is-small" id="btn-pause">
                             <span class="icon is-small">
-                                <i class="fas fa-angle-right"></i>
+                                <i id="pause-button-icon" class="fas fa-pause"></i>
                             </span>
                         </button>
                     </span>
-                    <button class="button" id="btn-step">
-                        <span class="icon is-small">
-                            <i class="fas fa-step-forward"></i>
+                    <span class="level-right">
+                        <span class="level-item">
+                            <button class="button is-small level-item" id="btn-view-fittest">View Fittest</button>
                         </span>
-                    </button>
-                    <button class="button" id="btn-pause">
-                        <span class="icon is-small">
-                            <i id="pause-button-icon" class="fas fa-pause"></i>
+                        <span class="level-item">
+                            <button class="button is-small level-item" id="btn-view-fittest-living">View Fittest
+                                Living</button>
                         </span>
-                    </button>
-                    <button class="button" id="btn-view-fittest">View Fittest</button>
-                    <button class="button" id="btn-view-fittest-living">View Fittest Living</button>
+                    </span>
                 </div>
-                <div class="field is-grouped pt-2 mb-0">
-                    <label class="label has-text-grey-light" for="slider-speed">Sim Speed</label>
-                    <p class="control is-expanded">
-                        <input type="range" class="slider" min="1" max="100" value="1" id="slider-speed">
+                <div class="field is-grouped pt-1 mb-1">
+                    <label id="label-sim-speed" class="label has-text-grey-light pt-1" for="slider-speed">Sim
+                        Speed</label>
+                    <p class="control is-expanded" style="display:flex">
+                        <input type="range" class="slider is-flex-grow-1" min="1" max="100" value="1" id="slider-speed">
                     </p>
                 </div>
                 <div class="field is-grouped pt-0">
                     <label class="label checkbox has-text-grey-light" for="slider-speed">
                         <input type="checkbox" id="cb-show-fittest-living">
-                        Always Show Fittest Living
+                        Always Show Fittest Living Snake
+                    </label>
+                </div>
+                <div>
+                    <label class="label has-text-grey-light" for="select-secondary-display-mode">
+                        Secondary Displays
+                        <div id="select-secondary-display-mode" class="select is-small ml-2">
+                            <select>
+                                <option>First</option>
+                                <option>Fittest</option>
+                                <option>First Alive</option>
+                                <option>Fittest Alive</option>
+                            </select>
+                        </div>
                     </label>
                 </div>
 
-                <label class="label is-large has-text-grey-light">DiskOp</label>
-                <div class="multi-button">
-                    <button class="button" id="btn-save-fittest">
-                        <span class="icon is-small">
-                            <i class="fas fa-save"></i>
-                        </span>
-                        <span>Save Fittest NN</span>
-                    </button><button class="button" id="btn-load-nn">
-                        <span class="icon is-small">
-                            <i class="fas fa-upload"></i>
-                        </span>
-                        <span>Load NN</span>
-                    </button>
-                    <span class="one-line-notif notification is-danger p-2 mt-0" style="display:none;">
-                        <button class="delete"></button>
-                        Invalid file!
-                    </span>
-                    <input type="file" name="nn">
+                <!-- Simulation parameters -->
+                <label class="label is-large has-text-grey-light pt-6 mb-0">Params</label>
+                <div class="field is-grouped pt-0 mb-1">
+                    <label id="label-mutation-rate" class="label has-text-grey-light pt-1" for="slider-speed">Mutation
+                        Rate</label>
+                    <p class="control is-expanded" style="display:flex">
+                        <input type="range" class="slider is-flex-grow-1" min="0" max="1.0" step=".01" value=".05"
+                            id="slider-mutation-rate">
+                    </p>
                 </div>
+                <div class="field is-grouped pt-0 mb-1">
+                    <label class="label has-text-grey-light" for="input-score-per-move">
+                        Score Per Move
+                    </label>
+                    <p class="control is-expanded ml-2">
+                        <input class="input is-small" type="number" id="input-score-per-move" value="1">
+                    </p>
+                </div>
+                <div class="field is-grouped pt-0">
+                    <label class="label has-text-grey-light" for="input-score-per-move">
+                        Score Per Apple
+                    </label>
+                    <p class="control is-expanded ml-2">
+                        <input class="input is-small" type="number" id="input-score-per-move" value="300">
+                    </p>
+                </div>
+
+                <!-- Saving and loading controls -->
+                <label class="label is-large has-text-grey-light pt-6">DiskOp</label>
+                <span class="level is-flex-grow-1">
+                    <span class="level-left">
+                        <div class="multi-button">
+                            <button class="button is-small" id="btn-save-fittest">
+                                <span class="icon is-small">
+                                    <i class="fas fa-save"></i>
+                                </span>
+                                <span>Save Fittest</span>
+                            </button><button class="button is-small" id="btn-save-current">
+                                <span class="icon is-small">
+                                    <i class="fas fa-save"></i>
+                                </span>
+                                <span>Save Current</span>
+                            </button><button class="button is-small" id="btn-load-nn">
+                                <span class="icon is-small">
+                                    <i class="fas fa-upload"></i>
+                                </span>
+                                <span>Load</span>
+                            </button>
+                            <input type="file" name="nn">
+                        </div>
+                    </span>
+                    <span class="level-right is-flex-grow-1 ml-1" style="display:flex">
+                        <span class="one-line-notif notification is-danger is-flex-grow-1" style="display:none">
+                            <button class="delete"></button>
+                            Invalid file!
+                        </span>
+                    </span>
+                </span>
             </div>
         </div>
-        <app-footer class="column is-narrow"></app-footer>
+        <app-footer></app-footer>
     </div>
 </body>
 

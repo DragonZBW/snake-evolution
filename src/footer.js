@@ -1,7 +1,13 @@
 const template = document.createElement("template");
 template.innerHTML = `
-<footer>
-<p class="footer is-size-7">Contact zbw5667@g.rit.edu, hz1220@g.rit.edu Copyright &copy;2022 Zack Wilson, Hongfei Zhu</p>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
+
+<footer class="footer has-background-grey-darker my-0">
+  <div class="content has-text-centered">
+    <p>
+    Contact zbw5667@g.rit.edu, hz1220@g.rit.edu Copyright &copy;2022 Zack Wilson, Hongfei Zhu
+    </p>
+  </div>
 </footer>
 `;
 
