@@ -105,6 +105,20 @@
                         </div>
                     </label>
                 </div>
+                <div class="field is-grouped pt-1 mb-1">
+                    <label id="label-secondary-count" class="label has-text-grey-light pt-1" for="slider-secondary-count">
+                        Secondary Displays
+                    </label>
+                    <p class="control is-expanded" style="display:flex">
+                        <input type="range" class="slider is-flex-grow-1" min="0" max="30" value="20" id="slider-secondary-count">
+                    </p>
+                </div>
+                <button class="button is-small is-danger" id="btn-restart">
+                    <span class="icon is-small">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </span>
+                    <span>Restart Simulation</span>
+                </button>
 
                 <!-- Simulation parameters -->
                 <label class="label is-large has-text-grey-light pt-6 mb-0">Params</label>
@@ -124,12 +138,20 @@
                         <input class="input is-small" type="number" id="input-score-per-move" value="1">
                     </p>
                 </div>
-                <div class="field is-grouped pt-0">
+                <div class="field is-grouped pt-0 mb-1">
                     <label class="label has-text-grey-light" for="input-score-per-move">
                         Score Per Apple
                     </label>
                     <p class="control is-expanded ml-2">
                         <input class="input is-small" type="number" id="input-score-per-move" value="300">
+                    </p>
+                </div>
+                <div class="field is-grouped pt-0 mb-1">
+                    <label class="label has-text-grey-light" for="input-time-to-starve">
+                        Time to Starve
+                    </label>
+                    <p class="control is-expanded ml-2">
+                        <input class="input is-small" type="number" id="input-time-to-starve" value="100">
                     </p>
                 </div>
 

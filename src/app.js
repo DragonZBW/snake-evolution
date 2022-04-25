@@ -28,7 +28,8 @@ generationNum.innerHTML = "Generation: " + population.generation + ", Alive: " +
 const secondaryDisplaysParent = document.querySelector("#secondary-displays");
 
 const secondaryDisplays = [];
-for (let i = 0; i < 20; i++) {
+const secondaryCount = document.querySelector("#slider-secondary-count").value;
+for (let i = 0; i < secondaryCount; i++) {
     const snakeDisp = document.createElement("snake-display");
     snakeDisp.logic = population.players[i + 1];
     snakeDisp.classList.add("secondary-snake");
@@ -49,28 +50,27 @@ const loop = () => {
         population.update();
         if (population.aliveCount == 0) {
             population.nextGeneration();
-            console.log(population.players[i].nn.mutationRate);
             displayID = 0;
         }
         snakeDisplay.logic = population.players[displayID];
     }
     switch (secondaryDisplayMode) {
         case "First":
-            for (let i = 0; i < 20; i++) {
+            for (let i = 0; i < secondaryDisplays.length; i++) {
                 secondaryDisplays[i].logic = population.players[i];
                 secondaryDisplays[i].render();
             }
             break;
         case "Fittest":
-            const fittest = population.getFittestGroup(20);
-            for (let i = 0; i < 20; i++) {
+            const fittest = population.getFittestGroup(secondaryDisplays.length);
+            for (let i = 0; i < secondaryDisplays.length; i++) {
                 secondaryDisplays[i].logic = population.players[fittest[i]];
                 secondaryDisplays[i].render();
             }
             break;
         case "First Alive":
             let count = 0;
-            for (let i = 0; i < population.size && count < 20; i++) {
+            for (let i = 0; i < population.size && count < secondaryDisplays.length; i++) {
                 if (population.players[i].alive) {
                     secondaryDisplays[count].logic = population.players[i];
                     secondaryDisplays[count].render();
@@ -79,8 +79,8 @@ const loop = () => {
             }
             break;
         case "Fittest Alive":
-            const fittestAlive = population.getFittestGroup(20, false);
-            for (let i = 0; i < 20; i++) {
+            const fittestAlive = population.getFittestGroup(secondaryDisplays.length, false);
+            for (let i = 0; i < secondaryDisplays.length; i++) {
                 secondaryDisplays[i].logic = population.players[fittestAlive[i]];
                 secondaryDisplays[i].render();
             }
@@ -101,6 +101,7 @@ const loop = () => {
 
 document.querySelector("#label-sim-speed").innerHTML = "Sim Speed (" + document.querySelector("#slider-speed").value + ")";
 document.querySelector("#label-mutation-rate").innerHTML = "Mutation Rate (" + document.querySelector("#slider-mutation-rate").value + ")";
+document.querySelector("#label-secondary-count").innerHTML = "Secondary Displays (" + document.querySelector("#slider-secondary-count").value + ")";
 
 loop();
 
@@ -162,10 +163,47 @@ document.querySelector("#cb-show-fittest-living").onclick = (e) => {
 document.querySelector("#select-secondary-display-mode").onchange = (e) => {
     secondaryDisplayMode = e.target.value;
     if (secondaryDisplayMode == "First") {
-        for (let i = 0; i < 20; i++) {
+        for (let i = 0; i < secondaryDisplays.length; i++) {
             secondaryDisplays[i].logic = population.players[i];
             secondaryDisplays[i].render();
         }
+    }
+};
+
+document.querySelector("#slider-secondary-count").oninput = (e) => {
+    document.querySelector("#label-secondary-count").innerHTML = "Secondary Displays (" + e.target.value + ")";
+    for (let i = 0; i < secondaryDisplays.length; i++) {
+        secondaryDisplaysParent.removeChild(secondaryDisplays[i]);
+    }
+    secondaryDisplays.splice(0);
+    const secondaryCount = e.target.value;
+    for (let i = 0; i < secondaryCount; i++) {
+        const snakeDisp = document.createElement("snake-display");
+        snakeDisp.logic = population.players[i + 1];
+        snakeDisp.classList.add("secondary-snake");
+        //snakeDisp.classList.add("column")
+        snakeDisp.setWidth(200);
+        const div = document.createElement("div");
+        div.classList.add("column");
+        div.appendChild(snakeDisp)
+        secondaryDisplaysParent.appendChild(snakeDisp);
+        secondaryDisplays.push(snakeDisp);
+    }
+};
+
+document.querySelector("#btn-restart").onclick = () => {
+    population = new Population(() => {
+        const snake = new Snake();
+        snake.nn.mutationRate = document.querySelector("#slider-mutation-rate").value;
+        return snake;
+    }, population.size);
+    displayID = 0;
+    snakeDisplay.logic = population.players[0];
+    snakeDisplay.render();
+
+    for (let i = 0; i < secondaryDisplays.length; i++) {
+        secondaryDisplays[i].logic = population.players[i];
+        secondaryDisplays[i].render();
     }
 };
 
@@ -199,7 +237,7 @@ document.querySelector("input[type='file']").onchange = (e) => {
         return;
 
     document.querySelector("#btn-load-nn").classList.add("is-loading");
-    
+
     const fr = new FileReader();
     fr.onload = () => {
         document.querySelector("#btn-load-nn").classList.remove("is-loading");
@@ -222,11 +260,11 @@ document.querySelector("input[type='file']").onchange = (e) => {
             snakeDisplay.logic = population.players[0];
             snakeDisplay.render();
 
-            for (let i = 0; i < 20; i++) {
-                secondaryDisplays[i].logic = population.players[i + 1];
+            for (let i = 0; i < secondaryDisplays.length; i++) {
+                secondaryDisplays[i].logic = population.players[i];
                 secondaryDisplays[i].render();
             }
-        } catch(error) {
+        } catch (error) {
             console.log(error);
             document.querySelector(".one-line-notif").style.display = "inline-block";
         }
@@ -240,7 +278,7 @@ document.querySelector(".delete").onclick = () => {
 
 function download(filename, textInput) {
     var element = document.createElement('a');
-    element.setAttribute('href','data:text/plain;charset=utf-8, ' + encodeURIComponent(textInput));
+    element.setAttribute('href', 'data:text/plain;charset=utf-8, ' + encodeURIComponent(textInput));
     element.setAttribute('download', filename);
     document.body.appendChild(element);
     element.click();
