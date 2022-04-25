@@ -48,14 +48,14 @@ nn-display {
     border-bottom-right-radius: 0px;
 }
 
-.multi-button > button:first-child {
+.multi-button > button:first-of-type {
     border-top-left-radius: 4px;
     border-bottom-left-radius: 4px;
     border-top-right-radius: 0px;
     border-bottom-right-radius: 0px;
 }
 
-.multi-button > button:last-child {
+.multi-button > button:last-of-type {
     border-top-left-radius: 0px;
     border-bottom-left-radius: 0px;
     border-top-right-radius: 4px;
@@ -70,4 +70,16 @@ input[type="range"] {
 
 .checkbox > input {
     margin-right: .25rem;
+}
+
+input[type="file"] {
+    display: none;
+}
+
+.one-line-notif {
+    padding-right: 2rem!important;
+}
+
+.one-line-notif .delete {
+    margin-top: .2rem;
 }

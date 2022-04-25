@@ -17,10 +17,16 @@ export default class Matrix {
     }
 
     static fromArray(arr) {
-        let m = new Matrix(arr.length, 1);
+        const m = new Matrix(arr.length, 1);
         for (let i = 0; i < arr.length; i++) {
             m.set(i, 0, arr[i]);
         }
+        return m;
+    }
+
+    static fromJSON(json) {
+        const m = new Matrix(json.rows, json.cols);
+        m.map((el, i, j) => json.data[i * m.cols + j]);
         return m;
     }
 
@@ -31,7 +37,7 @@ export default class Matrix {
     }
 
     static transpose(matrix) {
-        let result = new Matrix(matrix.cols, matrix.rows);
+        const result = new Matrix(matrix.cols, matrix.rows);
         result.map((el, i, j) => matrix.get(j, i));
         return result;
     }

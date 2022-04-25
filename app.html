@@ -18,7 +18,7 @@
     <div class="columns is-flex-direction-column">
         <app-header class="column is-narrow"></app-header>
         <app-navbar class="column is-narrow"></app-navbar>
-        <div class="columns">
+        <div class="columns px-0">
 
             <div id="displays" class="column border-right container px-6">
                 <h1 class="title has-text-warning">Simulation</h1>
@@ -36,7 +36,7 @@
                 </div>
             </div>
 
-            <div id="controls" class="column is-two-fifths px-5">
+            <div id="controls" class="column is-two-fifths px-5 mr-5">
                 <h1 class="title has-text-warning">Controls</h1>
                 <label class="label is-large has-text-grey-light">Playback/Viewer</label>
                 <div>
@@ -77,6 +77,26 @@
                         <input type="checkbox" id="cb-show-fittest-living">
                         Always Show Fittest Living
                     </label>
+                </div>
+
+                <label class="label is-large has-text-grey-light">DiskOp</label>
+                <div class="multi-button">
+                    <button class="button" id="btn-save-fittest">
+                        <span class="icon is-small">
+                            <i class="fas fa-save"></i>
+                        </span>
+                        <span>Save Fittest NN</span>
+                    </button><button class="button" id="btn-load-nn">
+                        <span class="icon is-small">
+                            <i class="fas fa-upload"></i>
+                        </span>
+                        <span>Load NN</span>
+                    </button>
+                    <span class="one-line-notif notification is-danger p-2 mt-0" style="display:none;">
+                        <button class="delete"></button>
+                        Invalid file!
+                    </span>
+                    <input type="file" name="nn">
                 </div>
             </div>
         </div>

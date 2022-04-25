@@ -12,6 +12,18 @@ export default class Population {
         this.generation = 0;
     }
 
+    // Get the fittest player in the population, return its index.
+    getFittest(allowDead = true) {
+        let fittest = 0;
+        for (let i = 1; i < this.size; i++) {
+            if (!this.players[i].alive && !allowDead)
+                continue;
+            if (this.players[i].score > this.players[fittest].score)
+                fittest = i;
+        }
+        return fittest;
+    }
+
     // Move on to the next generation, using natural selection to pass on genes.
     nextGeneration() {
         // Calculate fitness of players

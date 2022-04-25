@@ -4,12 +4,14 @@ import "./snakedisplay.js";
 import Snake from "./snake.js";
 import Population from "./population.js";
 import "./init.js";
+import NN from "./nn.js";
+import Matrix from "./matrix.js";
 
 const nnDisplay = document.querySelector("nn-display");
 const snakeDisplay = document.querySelector("snake-display");
 const generationNum = document.querySelector("#generation-num");
 
-const population = new Population(() => new Snake(), 1000);
+let population = new Population(() => new Snake(), 1000);
 snakeDisplay.logic = population.players[0];
 let steps = 1;
 
@@ -51,14 +53,7 @@ const loop = () => {
     }
 
     if (alwaysShowFittestLiving) {
-        let fittest = 0;
-        for (let i = 1; i < population.size; i++) {
-            if (!population.players[i].alive)
-                continue;
-            if (population.players[i].score > population.players[fittest].score)
-                fittest = i;
-        }
-        displayID = fittest;
+        displayID = population.getFittest(false);
         snakeDisplay.logic = population.players[displayID];
     }
 
@@ -93,25 +88,13 @@ document.querySelector("#btn-pause").onclick = () => {
 };
 
 document.querySelector("#btn-view-fittest").onclick = () => {
-    let fittest = 0;
-    for (let i = 1; i < population.size; i++) {
-        if (population.players[i].score > population.players[fittest].score)
-            fittest = i;
-    }
-    displayID = fittest;
+    displayID = population.getFittest();
     snakeDisplay.logic = population.players[displayID];
     snakeDisplay.render();
 };
 
 document.querySelector("#btn-view-fittest-living").onclick = () => {
-    let fittest = 0;
-    for (let i = 1; i < population.size; i++) {
-        if (!population.players[i].alive)
-            continue;
-        if (population.players[i].score > population.players[fittest].score)
-            fittest = i;
-    }
-    displayID = fittest;
+    displayID = population.getFittest(false);
     snakeDisplay.logic = population.players[displayID];
     snakeDisplay.render();
 };
@@ -136,6 +119,68 @@ document.querySelector("#slider-speed").oninput = (e) => {
 document.querySelector("#cb-show-fittest-living").onclick = (e) => {
     alwaysShowFittestLiving = e.target.checked;
 };
+
+document.querySelector("#btn-save-fittest").onclick = () => {
+    const fittestNN = population.getFittest();
+    download("nn.json", JSON.stringify(population.players[fittestNN].nn));
+};
+
+document.querySelector("#btn-load-nn").onclick = (e) => {
+    document.querySelector("input[type='file']").click();
+};
+
+document.querySelector("input[type='file']").onchange = (e) => {
+    if (!e.target.files[0])
+        return;
+
+    document.querySelector("#btn-load-nn").classList.add("is-loading");
+    
+    const fr = new FileReader();
+    fr.onload = () => {
+        document.querySelector("#btn-load-nn").classList.remove("is-loading");
+        // convert text to json
+        try {
+            const json = JSON.parse(fr.result);
+            const nn = new NN(json.inputs, json.hidden, json.outputs);
+            nn.biasH = Matrix.fromJSON(json.biasH);
+            nn.biasO = Matrix.fromJSON(json.biasO);
+            nn.learningRate = json.learningRate;
+            nn.mutationRate = json.mutationRate;
+            nn.weightsHO = Matrix.fromJSON(json.weightsHO);
+            nn.weightsIH = Matrix.fromJSON(json.weightsIH);
+            population = new Population(() => {
+                const snake = new Snake();
+                snake.nn = nn.copy();
+                return snake;
+            }, population.size);
+            displayID = 0;
+            snakeDisplay.logic = population.players[0];
+            snakeDisplay.render();
+
+            for (let i = 0; i < 20; i++) {
+                secondaryDisplays[i].logic = population.players[i + 1];
+                secondaryDisplays[i].render();
+            }
+        } catch(error) {
+            console.log(error);
+            document.querySelector(".one-line-notif").style.display = "inline-block";
+        }
+    }
+    fr.readAsText(e.target.files[0]);
+};
+
+document.querySelector(".delete").onclick = () => {
+    document.querySelector(".one-line-notif").style.display = "none";
+}
+
+function download(filename, textInput) {
+    var element = document.createElement('a');
+    element.setAttribute('href','data:text/plain;charset=utf-8, ' + encodeURIComponent(textInput));
+    element.setAttribute('download', filename);
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+}
 
 // document.body.onkeydown = keyDown;
 // //movement controls
