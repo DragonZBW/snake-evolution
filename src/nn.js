@@ -17,32 +17,55 @@ export default class NN {
     // Construct a neural network with a specified number of inputs, hidden nodes, and outputs.
     constructor(inputs, hidden, outputs) {
         this.inputs = inputs;
-        this.hidden = hidden;
+        this.hidden = hidden.slice();
         this.outputs = outputs;
 
-        this.weightsIH = new Matrix(this.hidden, this.inputs);
-        this.weightsHO = new Matrix(this.outputs, this.hidden);
-        this.weightsIH.randomize();
-        this.weightsHO.randomize();
+        const layers = [inputs].concat(this.hidden.concat([outputs]));
 
-        this.biasH = new Matrix(this.hidden, 1);
-        this.biasO = new Matrix(this.outputs, 1);
-        this.biasH.randomize();
-        this.biasO.randomize();
+        console.log(layers);
 
+        this.weights = [];
+        this.biases = [];
+        for (let i = 1; i < layers.length; i++) {
+            this.weights.push(new Matrix(layers[i], layers[i - 1]));
+            this.weights[this.weights.length - 1].randomize();
 
-        this.learningRate = .05;
+            this.biases.push(new Matrix(layers[i], 1));
+            this.biases[this.biases.length - 1].randomize();
+        }
+
+        // this.weightsIH = new Matrix(this.hidden, this.inputs);
+        // this.weightsHO = new Matrix(this.outputs, this.hidden);
+        // this.weightsIH.randomize();
+        // this.weightsHO.randomize();
+
+        
+
+        console.log(this);
+
+        // this.biasH = new Matrix(this.hidden, 1);
+        // this.biasO = new Matrix(this.outputs, 1);
+        // this.biasH.randomize();
+        // this.biasO.randomize();
+
+        //this.learningRate = .05;
         this.mutationRate = .02;
     }
 
     // Make a copy of the neural network.
     copy() {
         const clone = new NN(this.inputs, this.hidden, this.outputs);
-        clone.weightsIH = this.weightsIH.copy();
-        clone.weightsHO = this.weightsHO.copy();
-        clone.biasH = this.biasH.copy();
-        clone.biasO = this.biasO.copy();
-        clone.learningRate = this.learningRate;
+        clone.weights = [];
+        clone.biases = [];
+        for (let i = 0; i < this.weights.length; i++) {
+            clone.weights[i] = this.weights[i].copy();
+            clone.biases[i] = this.biases[i].copy();
+        }
+        // clone.weightsIH = this.weightsIH.copy();
+        // clone.weightsHO = this.weightsHO.copy();
+        // clone.biasH = this.biasH.copy();
+        // clone.biasO = this.biasO.copy();
+        // clone.learningRate = this.learningRate;
         clone.mutationRate = this.mutationRate;
         return clone;
     }
@@ -51,60 +74,67 @@ export default class NN {
     feedForward(input) {
         let inputs = Matrix.fromArray(input);
 
-        let hidden = Matrix.multiply(this.weightsIH, inputs);
-        hidden.add(this.biasH);
-        hidden.map(sigmoid);
+        let outputs = inputs;
+        for (let i = 0; i < this.hidden.length + 1; i++) {
+            outputs = Matrix.multiply(this.weights[i], outputs);
+            outputs.add(this.biases[i]);
+            outputs.map(sigmoid);
+        }
 
-        let outputs = Matrix.multiply(this.weightsHO, hidden);
-        outputs.add(this.biasO);
-        outputs.map(sigmoid);
+        // let hidden = Matrix.multiply(this.weightsIH, inputs);
+        // hidden.add(this.biasH);
+        // hidden.map(sigmoid);
+
+        // let outputs = Matrix.multiply(this.weightsHO, hidden);
+        // outputs.add(this.biasO);
+        // outputs.map(sigmoid);
 
         return outputs.toArray();
     }
 
     // Train the neural network to get closer to an expected output using backpropagation.
-    train(inputArray, targetArray) {
-        let inputs = Matrix.fromArray(inputArray);
+    // train(inputArray, targetArray) {
+    //     let inputs = Matrix.fromArray(inputArray);
 
-        let hidden = Matrix.multiply(this.weightsIH, inputs);
-        hidden.add(this.biasH);
-        hidden.map(sigmoid);
+    //     let hidden = Matrix.multiply(this.weightsIH, inputs);
+    //     hidden.add(this.biasH);
+    //     hidden.map(sigmoid);
 
-        let outputs = Matrix.multiply(this.weightsHO, hidden);
-        outputs.add(this.biasO);
-        outputs.map(sigmoid);
+    //     let outputs = Matrix.multiply(this.weightsHO, hidden);
+    //     outputs.add(this.biasO);
+    //     outputs.map(sigmoid);
         
-        let targets = Matrix.fromArray(targetArray);
+    //     let targets = Matrix.fromArray(targetArray);
 
-        // Calc output errors (targets - outputs)
-        const outputErrors = Matrix.subtract(targets, outputs);
+    //     // Calc output errors (targets - outputs)
+    //     const outputErrors = Matrix.subtract(targets, outputs);
 
-        // Calc delta weightsHO
-        const gradients = Matrix.map(outputs, dsigmoid);
-        gradients.multiply(outputErrors);
-        gradients.multiply(this.learningRate);
+    //     // Calc delta weightsHO
+    //     const gradients = Matrix.map(outputs, dsigmoid);
+    //     gradients.multiply(outputErrors);
+    //     gradients.multiply(this.learningRate);
 
-        const hiddenTranspose = Matrix.transpose(hidden);
-        const weightsHODelta = Matrix.multiply(gradients, hiddenTranspose);
+    //     const hiddenTranspose = Matrix.transpose(hidden);
+    //     const weightsHODelta = Matrix.multiply(gradients, hiddenTranspose);
 
-        this.weightsHO.add(weightsHODelta);
-        this.biasO.add(gradients);
+    //     this.weightsHO.add(weightsHODelta);
+    //     this.biasO.add(gradients);
         
-        // Calc hidden layer errors
-        const weightsHOTranspose = Matrix.transpose(this.weightsHO);
-        const hiddenErrors = Matrix.multiply(weightsHOTranspose, outputErrors);
+    //     // Calc hidden layer errors
+    //     const weightsHOTranspose = Matrix.transpose(this.weightsHO);
+    //     const hiddenErrors = Matrix.multiply(weightsHOTranspose, outputErrors);
 
-        // Calc delta weightsIH
-        const hiddenGradient = Matrix.map(hidden, dsigmoid);
-        hiddenGradient.multiply(hiddenErrors);
-        hiddenGradient.multiply(this.learningRate);
+    //     // Calc delta weightsIH
+    //     const hiddenGradient = Matrix.map(hidden, dsigmoid);
+    //     hiddenGradient.multiply(hiddenErrors);
+    //     hiddenGradient.multiply(this.learningRate);
 
-        const inputTranspose = Matrix.transpose(inputs);
-        const weightsIHDelta = Matrix.multiply(hiddenGradient, inputTranspose);
+    //     const inputTranspose = Matrix.transpose(inputs);
+    //     const weightsIHDelta = Matrix.multiply(hiddenGradient, inputTranspose);
 
-        this.weightsIH.add(weightsIHDelta);
-        this.biasH.add(hiddenGradient);
-    }
+    //     this.weightsIH.add(weightsIHDelta);
+    //     this.biasH.add(hiddenGradient);
+    // }
 
     // Mutate the weights and biases.
     mutate() {
@@ -114,10 +144,15 @@ export default class NN {
             }
             return el;
         };
+
+        for (let i = 0; i < this.weights.length; i++) {
+            this.weights[i].map(mutateFunc);
+            this.biases[i].map(mutateFunc);
+        }
         
-        this.weightsHO.map(mutateFunc);
-        this.weightsIH.map(mutateFunc);
-        this.biasH.map(mutateFunc);
-        this.biasO.map(mutateFunc);
+        // this.weightsHO.map(mutateFunc);
+        // this.weightsIH.map(mutateFunc);
+        // this.biasH.map(mutateFunc);
+        // this.biasO.map(mutateFunc);
     }
 }

@@ -36,7 +36,7 @@ export default class Snake {
             this.direction.set(0, -1);
         }
 
-        this.nn = new NN(8, 32, 1);
+        this.nn = new NN(8, [16, 12], 4);
         this.nn.mutationRate = .1;
 
         this.id = 0;
@@ -81,14 +81,10 @@ export default class Snake {
         //console.log(controls);
         // Set direction from control
         let dir = 0;
-        if (controls[0] < .25)
-            dir = 0;
-        else if (controls[0] < .5)
-            dir = 1;
-        else if (controls[0] < .75)
-            dir = 2;
-        else
-            dir = 3;
+        for (let i = 0; i < 4; i++) {
+            if (controls[i] > controls[dir])
+                dir = i;
+        }
             
         switch (dir) {
             case 0:
