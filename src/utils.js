@@ -12,4 +12,9 @@ export function randomGauss() {
     num = num / 10.0 + 0.5; // Translate to 0 -> 1
     if (num > 1 || num < 0) return randomGauss(); // resample between 0 and 1
     return num * 2 - 1;
-  }
+}
+  
+// Linear interpolation
+export function lerp(a, b, t) {
+    return a * (1 - t) + b * t;
+}

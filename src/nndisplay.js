@@ -1,4 +1,5 @@
 import "./nn.js";
+import { lerp } from "./utils.js";
 import Vector from "./vector.js";
 
 const template = document.createElement("template");
@@ -11,6 +12,9 @@ canvas {
 </style>
 <canvas width=800 height=400></canvas>
 `;
+
+const xSpacing = 75;
+const ySpacing = 20;
 
 // A canvas that will display a visualization of a neural network.
 class NNDisplay extends HTMLElement {
@@ -148,7 +152,8 @@ class NNDisplay extends HTMLElement {
         this.ctx.lineTo(x2, y2);
 
         this.ctx.strokeStyle = weight > 0 ? "green" : "red";
-        this.ctx.lineWidth = Math.max(1, Math.abs(weight) * 5);
+        this.ctx.globalAlpha = Math.abs(weight);
+        this.ctx.lineWidth = 1;
         this.ctx.stroke();
 
         this.ctx.closePath();
@@ -179,79 +184,77 @@ class NNDisplay extends HTMLElement {
         // OUTPUT COLOR #224870
         // HIDDEN COLOR #F9C80E
 
-        const connections = [];
-        for (let i = 0; i < this.nn.connections.length; i++) {
-            const conn = this.nn.connections[i];
-            connections.push({ source: this.nn.getNodeIndex(conn.input.id), target: this.nn.getNodeIndex(conn.output.id), weight: conn.weight, enabled: conn.enabled });
-        }
-
-        const layerNodeCounts = [];
-        for (let i = 0; i < this.nn.layers; i++) {
-            let count = 0;
-            for (let j = 0; j < this.nn.nodes.length; j++) {
-                if (this.nn.nodes[j].layer == i)
-                    count++;
-            }
-            layerNodeCounts.push(count);
-        }
-
-        const layerNodesDone = [];
-        for (let i = 0; i < this.nn.layers; i++)
-            layerNodesDone.push(0);
-
         const nodes = [];
-        const inputX = this.canvas.width * 0.2;
-        const outputX = this.canvas.width - (this.canvas.width * 0.2);
-        for (let i = 0; i < this.nn.nodes.length; i++) {
-            const node = this.nn.nodes[i].copy();
-            if (node.layer == 0) {
-                node.x = inputX;
-                node.y = ((this.canvas.height / this.nn.inputCount) * node.id) + (this.canvas.height / this.nn.inputCount) / 2;
-            } else if (node.isOutput) {
-                node.x = outputX;
-                node.y = ((this.canvas.height / this.nn.outputCount) * (node.id - this.nn.inputCount)) + (this.canvas.height / this.nn.outputCount) / 2;
-            } else {
-                node.x = lerp(inputX, outputX, 1 - node.layer / (this.nn.layers - 1));
-                node.y = ((this.canvas.height / layerNodeCounts[node.layer]) * layerNodesDone[node.layer]) + (this.canvas.height / layerNodeCounts[node.layer]) / 2;
-                layerNodesDone[node.layer]++;
+        const nodesByLayerNum = {};
+        for (let i = 0; i < this.nn.inputs; i++) {
+            nodes.push({
+                x: this.canvas.width / 2 - this.nn.hidden.length / 2 * xSpacing - xSpacing,
+                y: this.canvas.height / 2 - this.nn.inputs / 2 * ySpacing + i * ySpacing,
+                color: "#E85D75"
+            });
+            if (!nodesByLayerNum[0])
+                nodesByLayerNum[0] = {};
+            nodesByLayerNum[0][i] = nodes.length - 1;
+        }
+        for (let i = 0; i < this.nn.hidden.length; i++) {
+            for (let j = 0; j < this.nn.hidden[i]; j++) {
+                nodes.push({
+                    x: this.canvas.width / 2 - this.nn.hidden.length / 2 * xSpacing + i * xSpacing,
+                    y: this.canvas.height / 2 - this.nn.hidden[i] / 2 * ySpacing + j * ySpacing,
+                    color: "#F9C80E"
+                });
+                if (!nodesByLayerNum[i + 1])
+                    nodesByLayerNum[i + 1] = {};
+                nodesByLayerNum[i + 1][j] = nodes.length - 1;
             }
+        }
+        for (let i = 0; i < this.nn.outputs; i++) {
+            nodes.push({
+                x: this.canvas.width / 2 + this.nn.hidden.length / 2 * xSpacing,
+                y: this.canvas.height / 2 - this.nn.outputs / 2 * ySpacing + i * ySpacing,
+                color: "#224870"
+            });
+            if (!nodesByLayerNum[this.nn.hidden.length + 1])
+                    nodesByLayerNum[this.nn.hidden.length + 1] = {};
+            nodesByLayerNum[this.nn.hidden.length + 1][i] = nodes.length - 1;
+        }
 
-            nodes.push(node);
+        const connections = [];
+        for (let i = 0; i < this.nn.weights.length; i++) {
+            for (let r = 0; r < this.nn.weights[i].rows; r++) {
+                for (let c = 0; c < this.nn.weights[i].cols; c++) {
+                    connections.push({
+                        source: nodesByLayerNum[i][c],
+                        target: nodesByLayerNum[i + 1][r],
+                        weight: this.nn.weights[i].get(r, c)
+                    });
+                }
+            }
         }
 
         for (let c of connections) {
-            if (!c.enabled)
-                continue;
-
-            let input, output;
-            for (let n of nodes) {
-                if (n.id == c.source)
-                    input = n;
-                if (n.id == c.target)
-                    output = n;
-                if (input && output)
-                    break;
-            }
+            const input = nodes[c.source];
+            const output = nodes[c.target];
             this.drawConnection(input.x, input.y, output.x, output.y, c.weight);
         }
 
         for (let n of nodes) {
-            this.drawNode(n.x, n.y, n.isOutput ? "#224870" : n.layer == 0 ? "#E85D75" : "#F9C80E");
+            this.drawNode(n.x, n.y, n.color);
         }
 
         this.ctx.restore();
 
         // Draw text 
-        this.ctx.save();
-        this.ctx.textBaseline = "top";
-        this.ctx.font = "14px Helvetica";
-        this.ctx.fillStyle = "black";
-        this.ctx.fillText("NN " + this.nn.id + ", SCORE " + this.nn.score, 2, 2);
+        // this.ctx.save();
+        // this.ctx.textBaseline = "top";
+        // this.ctx.font = "14px Helvetica";
+        // this.ctx.fillStyle = "black";
+        // this.ctx.fillText("NN " + this.nn.id + ", SCORE " + this.nn.score, 2, 2);
 
-        this.ctx.textAlign = "right";
-        //this.ctx.fillText("GEN " + this..gen + ", MAX FITNESS " + (Math.round(NN.highestFitnessThisGen * 1000) / 1000), this.canvas.width - 2, 2);
+        // this.ctx.textAlign = "right";
+        // //this.ctx.fillText("GEN " + this..gen + ", MAX FITNESS " + (Math.round(NN.highestFitnessThisGen * 1000) / 1000), this.canvas.width - 2, 2);
 
-        this.ctx.restore();
+        // this.ctx.restore();
     }
 }
 

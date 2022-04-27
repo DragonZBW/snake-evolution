@@ -17,6 +17,7 @@ let population = new Population(() => {
     return snake;
 }, 1000);
 snakeDisplay.logic = population.players[0];
+nnDisplay.nn = population.players[0].nn;
 let steps = 1;
 
 let secondaryDisplayMode = "First";
@@ -93,6 +94,10 @@ const loop = () => {
     }
 
     snakeDisplay.render();
+    
+    nnDisplay.nn = population.players[displayID].nn;
+    nnDisplay.render();
+
     generationNum.innerHTML = "Generation " + population.generation + ", Alive: " + population.aliveCount;
 
     if (running)

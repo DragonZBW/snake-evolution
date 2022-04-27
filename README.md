@@ -19,3 +19,4 @@ https://travishorn.com/some-ways-to-align-the-last-row-in-a-flexbox-grid-720f365
 https://www.delftstack.com/howto/javascript/javascript-download/ - how to save text from the page
 https://fontawesome.com/v5/search - icons for buttons and such
 https://www.geeksforgeeks.org/how-to-read-a-local-text-file-using-javascript/ - how to load a file from the user's computer
+https://github.com/mattdesl/lerp/blob/master/index.js - Lerp function

@@ -22,8 +22,6 @@ export default class NN {
 
         const layers = [inputs].concat(this.hidden.concat([outputs]));
 
-        console.log(layers);
-
         this.weights = [];
         this.biases = [];
         for (let i = 1; i < layers.length; i++) {
@@ -39,9 +37,6 @@ export default class NN {
         // this.weightsIH.randomize();
         // this.weightsHO.randomize();
 
-        
-
-        console.log(this);
 
         // this.biasH = new Matrix(this.hidden, 1);
         // this.biasO = new Matrix(this.outputs, 1);
