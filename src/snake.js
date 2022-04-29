@@ -36,7 +36,10 @@ export default class Snake {
             this.direction.set(0, -1);
         }
 
-        this.nn = new NN(8, [16, 12], 4);
+        this.nn = new NN(
+            ["Head X", "Head Y", "Apple X", "Apple Y", "Direction X", "Direction Y", "Apple Dist X", "Apple Dist Y"],
+            [16, 12],
+            ["Up", "Down", "Left", "Right"]);
         this.nn.mutationRate = .1;
 
         this.id = 0;

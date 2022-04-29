@@ -16,11 +16,13 @@ function dsigmoid(y) {
 export default class NN {
     // Construct a neural network with a specified number of inputs, hidden nodes, and outputs.
     constructor(inputs, hidden, outputs) {
-        this.inputs = inputs;
+        this.inputNames = inputs;
+        this.inputs = inputs.length;
         this.hidden = hidden.slice();
-        this.outputs = outputs;
+        this.outputNames = outputs;
+        this.outputs = outputs.length;
 
-        const layers = [inputs].concat(this.hidden.concat([outputs]));
+        const layers = [this.inputs].concat(this.hidden.concat([this.outputs]));
 
         this.weights = [];
         this.biases = [];
@@ -49,7 +51,7 @@ export default class NN {
 
     // Make a copy of the neural network.
     copy() {
-        const clone = new NN(this.inputs, this.hidden, this.outputs);
+        const clone = new NN(this.inputNames, this.hidden, this.outputNames);
         clone.weights = [];
         clone.biases = [];
         for (let i = 0; i < this.weights.length; i++) {

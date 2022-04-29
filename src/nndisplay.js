@@ -190,7 +190,9 @@ class NNDisplay extends HTMLElement {
             nodes.push({
                 x: this.canvas.width / 2 - this.nn.hidden.length / 2 * xSpacing - xSpacing,
                 y: this.canvas.height / 2 - this.nn.inputs / 2 * ySpacing + i * ySpacing,
-                color: "#E85D75"
+                color: "#E85D75",
+                label: this.nn.inputNames[i],
+                textAlign: "right"
             });
             if (!nodesByLayerNum[0])
                 nodesByLayerNum[0] = {};
@@ -212,7 +214,9 @@ class NNDisplay extends HTMLElement {
             nodes.push({
                 x: this.canvas.width / 2 + this.nn.hidden.length / 2 * xSpacing,
                 y: this.canvas.height / 2 - this.nn.outputs / 2 * ySpacing + i * ySpacing,
-                color: "#224870"
+                color: "#224870",
+                label: this.nn.outputNames[i],
+                textAlign: "left"
             });
             if (!nodesByLayerNum[this.nn.hidden.length + 1])
                     nodesByLayerNum[this.nn.hidden.length + 1] = {};
@@ -239,22 +243,10 @@ class NNDisplay extends HTMLElement {
         }
 
         for (let n of nodes) {
-            this.drawNode(n.x, n.y, n.color);
+            this.drawNode(n.x, n.y, n.color, n.label, n.textAlign);
         }
 
         this.ctx.restore();
-
-        // Draw text 
-        // this.ctx.save();
-        // this.ctx.textBaseline = "top";
-        // this.ctx.font = "14px Helvetica";
-        // this.ctx.fillStyle = "black";
-        // this.ctx.fillText("NN " + this.nn.id + ", SCORE " + this.nn.score, 2, 2);
-
-        // this.ctx.textAlign = "right";
-        // //this.ctx.fillText("GEN " + this..gen + ", MAX FITNESS " + (Math.round(NN.highestFitnessThisGen * 1000) / 1000), this.canvas.width - 2, 2);
-
-        // this.ctx.restore();
     }
 }
 
