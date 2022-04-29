@@ -215,6 +215,7 @@ document.querySelector("#btn-restart").onclick = () => {
         snake.nn.mutationRate = document.querySelector("#slider-mutation-rate").value;
         snake.scorePerMove = Number(document.querySelector("#input-score-per-move").value);
         snake.scorePerApple = Number(document.querySelector("#input-score-per-apple").value);
+        snake.scorePerMoveTowardApple = Number(document.querySelector("#input-score-per-move-toward-apple").value);
         snake.starveTime = Number(document.querySelector("#input-time-to-starve").value);
         return snake;
     }, population.nextGenSize);
@@ -264,6 +265,12 @@ document.querySelector("#input-score-per-apple").onchange = (e) => {
     }
 };
 
+document.querySelector("#input-score-per-move-toward-apple").onchange = (e) => {
+    for (let i = 0; i < population.size; i++) {
+        population.players[i].scorePerMoveTowardApple = Number(e.target.value);
+    }
+};
+
 document.querySelector("#input-time-to-starve").onchange = (e) => {
     for (let i = 0; i < population.size; i++) {
         population.players[i].starveTime = Number(e.target.value);
@@ -279,6 +286,7 @@ document.querySelector("#btn-save-fittest").onclick = () => {
         mutationRate: population.players[fittestNN].nn.mutationRate,
         scorePerMove: population.players[fittestNN].scorePerMove,
         scorePerApple: population.players[fittestNN].scorePerApple,
+        scorePerMoveTowardApple: population.players[fittestNN].scorePerMoveTowardApple,
         timeToStarve: population.players[fittestNN].starveTime
     };
     download("nn.json", JSON.stringify(obj));
@@ -291,6 +299,7 @@ document.querySelector("#btn-save-current").onclick = () => {
         mutationRate: population.players[displayID].nn.mutationRate,
         scorePerMove: population.players[displayID].scorePerMove,
         scorePerApple: population.players[displayID].scorePerApple,
+        scorePerMoveTowardApple: population.players[displayID].scorePerMoveTowardApple,
         timeToStarve: population.players[displayID].starveTime
     };
     download("nn.json", JSON.stringify(obj));
@@ -325,6 +334,7 @@ document.querySelector("input[type='file']").onchange = (e) => {
             snakeSource.nn = nn;
             snakeSource.scorePerMove = json.scorePerMove;
             snakeSource.scorePerApple = json.scorePerApple;
+            snakeSource.scorePerMoveTowardApple = json.scorePerMoveTowardApple;
             snakeSource.starveTime = json.timeToStarve;
             document.querySelector("#label-nn-init").innerHTML = "(Using " + e.target.files[0].name + ")";
 
@@ -333,6 +343,7 @@ document.querySelector("input[type='file']").onchange = (e) => {
             document.querySelector("#label-mutation-rate").innerHTML = "Mutation Rate (" + json.mutationRate + ")";
             document.querySelector("#input-score-per-move").value = json.scorePerMove;
             document.querySelector("#input-score-per-apple").value = json.scorePerApple;
+            document.querySelector("#input-score-per-move-toward-apple").value = json.scorePerMoveTowardApple;
             document.querySelector("#input-time-to-starve").value = json.timeToStarve;
 
             document.querySelector("#btn-unload-nn").removeAttribute("disabled");
