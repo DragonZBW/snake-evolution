@@ -87,7 +87,7 @@
                     </p>
                 </div>
                 <div class="field is-grouped pt-0">
-                    <label class="label checkbox has-text-grey-light" for="slider-speed">
+                    <label class="label checkbox has-text-grey-light" for="cb-show-fittest-living">
                         <input type="checkbox" id="cb-show-fittest-living">
                         Always Show Fittest Living Snake
                     </label>
@@ -171,10 +171,94 @@
 
                 <!-- NN topology setup -->
                 <label class="label is-large has-text-grey-light pt-6 mb-0">Neural Network Params</label>
+                <p class="help mt-0">These parameters require the simulation to be restarted to take effect.</p>
+                <label class="label has-text-grey-light mt-3">
+                    Inputs
+                </label>
+                <div>
+                    <div class="field is-grouped pt-0">
+                        <label class="label checkbox has-text-grey-light" for="cb-input-direction-x-y">
+                            <input type="checkbox" id="cb-input-direction-x-y">
+                            Direction (X, Y)
+                        </label>
+                    </div>
+                    <div class="field is-grouped pt-0">
+                        <label class="label checkbox has-text-grey-light" for="cb-input-direction-udlr">
+                            <input type="checkbox" id="cb-input-direction-udlr" checked="true">
+                            Direction (Up, Down, Left, Right)
+                        </label>
+                    </div>
+                    <div class="field is-grouped pt-0">
+                        <label class="label checkbox has-text-grey-light" for="cb-input-tail-direction-x-y">
+                            <input type="checkbox" id="cb-input-tail-direction-x-y">
+                            Tail Direction (X, Y)
+                        </label>
+                    </div>
+                    <div class="field is-grouped pt-0">
+                        <label class="label checkbox has-text-grey-light" for="cb-input-tail-direction-udlr">
+                            <input type="checkbox" id="cb-input-tail-direction-udlr">
+                            Tail Direction (Up, Down, Left, Right)
+                        </label>
+                    </div>
+                    <div class="field is-grouped pt-0">
+                        <label class="label checkbox has-text-grey-light" for="cb-input-head-pos">
+                            <input type="checkbox" id="cb-input-head-pos">
+                            Head Position (X, Y)
+                        </label>
+                    </div>
+                    <div class="field is-grouped pt-0">
+                        <label class="label checkbox has-text-grey-light" for="cb-input-apple-pos">
+                            <input type="checkbox" id="cb-input-apple-pos">
+                            Apple Position (X, Y)
+                        </label>
+                    </div>
+                    <div class="field is-grouped pt-0">
+                        <label class="label checkbox has-text-grey-light" for="cb-input-apple-dist">
+                            <input type="checkbox" id="cb-input-apple-dist" checked="true">
+                            Apple Distance (X, Y)
+                        </label>
+                    </div>
+                    <div class="field is-grouped pt-0">
+                        <label class="label checkbox has-text-grey-light" for="cb-input-wall-dist-x-y">
+                            <input type="checkbox" id="cb-input-wall-dist-x-y">
+                            Wall Distance (X, Y)
+                        </label>
+                    </div>
+                    <div class="field is-grouped pt-0">
+                        <label class="label checkbox has-text-grey-light" for="cb-input-wall-dist-udlr">
+                            <input type="checkbox" id="cb-input-wall-dist-udlr" checked="true">
+                            Wall Distance (Up, Down, Left, Right)
+                        </label>
+                    </div>
+                </div>
+                <div class="field is-grouped pt-3 mb-1">
+                    <label class="label has-text-grey-light" for="input-hidden-layer-count">
+                        Hidden Layer Count
+                    </label>
+                    <p class="control is-expanded ml-2">
+                        <input class="input is-small" type="number" id="input-hidden-layer-count" value="2">
+                    </p>
+                </div>
+                <div class="field is-grouped pt-0 mb-1">
+                    <label class="label has-text-grey-light" for="input-hidden-layer-neurons">
+                        Hidden Layer Neurons
+                    </label>
+                    <p class="control is-expanded ml-2">
+                        <input class="input is-small" type="number" id="input-hidden-layer-neurons" value="16">
+                    </p>
+                </div>
+                <div class="field is-grouped pt-0 mb-1">
+                    <label class="label has-text-grey-light" for="input-memory-count">
+                        Memory Node Count
+                    </label>
+                    <p class="control is-expanded ml-2">
+                        <input class="input is-small" type="number" id="input-memory-count" value="0">
+                    </p>
+                </div>
 
                 <!-- Saving and loading controls -->
                 <label class="label is-large has-text-grey-light pt-6">DiskOp</label>
-                <span class="level is-flex-grow-1">
+                <span class="level is-flex-grow-1 mb-2">
                     <span class="level-left">
                         <div class="multi-button">
                             <button class="button is-small" id="btn-save-fittest">
@@ -195,9 +279,6 @@
                             </button>
                             <input type="file" name="nn">
                         </div>
-                        <button class="button is-small ml-1 is-warning" id="btn-unload-nn" disabled>
-                            Unload
-                        </button>
                     </span>
                     <span class="level-right is-flex-grow-1 ml-1" style="display:flex">
                         <span class="one-line-notif notification is-danger is-flex-grow-1" style="display:none">
@@ -206,9 +287,24 @@
                         </span>
                     </span>
                 </span>
+                <div>
+                    <label class="label has-text-grey-light" for="select-secondary-display-mode">
+                        Use Preset
+                        <div id="select-secondary-display-mode" class="select is-small ml-2">
+                            <select>
+                                <option>Loopy</option>
+                            </select>
+                        </div>
+                        <button id="btn-load-preset" class="button is-small">Load</button>
+                    </label>
+                </div>
+                <button class="button is-small is-warning mt-2" id="btn-unload-nn" disabled>
+                    Unload Loaded NN/Preset
+                </button>
             </div>
         </div>
-        <app-footer></app-footer>
+    </div>
+    <app-footer></app-footer>
     </div>
 </body>
 
