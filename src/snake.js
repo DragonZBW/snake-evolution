@@ -7,7 +7,7 @@ import Vector from "./vector.js";
 
 // The logic for the snake game.
 export default class Snake {
-    constructor(starveTime = 200) {
+    constructor(starveTime = 200, scorePerMove = 1, scorePerApple = 100) {
         //snake variables
         this.snakeVariables = {
             tileCount: 20,
@@ -37,8 +37,8 @@ export default class Snake {
         }
 
         this.nn = new NN(
-            ["Head X", "Head Y", "Apple X", "Apple Y", "Direction X", "Direction Y", "Apple Dist X", "Apple Dist Y"],
-            [16, 12],
+            [/* "Head X", "Head Y", "Apple X", "Apple Y", */ "Up", "Down", "Left", "Right", "Apple Dist X", "Apple Dist Y", "Wall Dist Up", "Wall Dist Down", "Wall Dist Left", "Wall Dist Right"],
+            [16, 16],
             ["Up", "Down", "Left", "Right"]);
         this.nn.mutationRate = .1;
 
@@ -51,10 +51,14 @@ export default class Snake {
         this.applesCollected = 0;
 
         this.lifetime = 0;
+
+        // Variables for scoring
+        this.scorePerMove = scorePerMove;
+        this.scorePerApple = scorePerApple;
     }
 
     copy() {
-        const clone = new Snake();
+        const clone = new Snake(this.starveTime, this.scorePerMove, this.scorePerApple);
         clone.nn = this.nn.copy();
         return clone;
     }
@@ -66,19 +70,77 @@ export default class Snake {
     update() {
         if (!this.alive)
             return;
-        
+
         // Get control from neural network
         // const controls = this.nn.feedForward([
         //     this.apple.x / this.snakeVariables.tileCount, this.apple.y / this.snakeVariables.tileCount,
         //     1 - (this.snakeVariables.headPos.x / this.snakeVariables.tileCount / 2), 1 - (this.snakeVariables.headPos.y / this.snakeVariables.tileCount / 2),
         //     1 - ((this.snakeVariables.tileCount - 1 - this.snakeVariables.headPos.x) / this.snakeVariables.tileCount / 2), 1 - ((this.snakeVariables.tileCount - 1 - this.snakeVariables.headPos.y) / this.snakeVariables.tileCount / 2),
         //     this.direction.x, this.direction.y]);
-        
+
+        let wallDistUp = this.snakeVariables.headPos.y + 1;
+        for (let i = 0; i < this.snakeVariables.snakeParts.length; i++) {
+            if (this.snakeVariables.snakeParts[i].x == this.snakeVariables.headPos.x &&
+                this.snakeVariables.snakeParts[i].y < this.snakeVariables.headPos.y) {
+                const dist = this.snakeVariables.headPos.y - this.snakeVariables.snakeParts[i].y;
+                if (dist < wallDistUp)
+                    wallDistUp = dist;
+            }
+        }
+
+        let wallDistDown = this.snakeVariables.tileCount - this.snakeVariables.headPos.y;
+        for (let i = 0; i < this.snakeVariables.snakeParts.length; i++) {
+            if (this.snakeVariables.snakeParts[i].x == this.snakeVariables.headPos.x &&
+                this.snakeVariables.snakeParts[i].y > this.snakeVariables.headPos.y) {
+                const dist = this.snakeVariables.snakeParts[i].y - this.snakeVariables.headPos.y;
+                if (dist < wallDistDown)
+                    wallDistDown = dist;
+            }
+        }
+
+        let wallDistLeft = this.snakeVariables.headPos.x + 1;
+        for (let i = 0; i < this.snakeVariables.snakeParts.length; i++) {
+            if (this.snakeVariables.snakeParts[i].y == this.snakeVariables.headPos.y &&
+                this.snakeVariables.snakeParts[i].x < this.snakeVariables.headPos.x) {
+                const dist = this.snakeVariables.headPos.x - this.snakeVariables.snakeParts[i].x;
+                if (dist < wallDistLeft)
+                    wallDistLeft = dist;
+            }
+        }
+
+        let wallDistRight = this.snakeVariables.tileCount - this.snakeVariables.headPos.x;
+        for (let i = 0; i < this.snakeVariables.snakeParts.length; i++) {
+            if (this.snakeVariables.snakeParts[i].y == this.snakeVariables.headPos.y &&
+                this.snakeVariables.snakeParts[i].x > this.snakeVariables.headPos.x) {
+                const dist = this.snakeVariables.snakeParts[i].x - this.snakeVariables.headPos.x;
+                if (dist < wallDistRight)
+                    wallDistRight = dist;
+            }
+        }
+
+        const div = this.snakeVariables.tileCount - 1;
+
         const controls = this.nn.feedForward([
-            this.snakeVariables.headPos.x / this.snakeVariables.tileCount, this.snakeVariables.headPos.y / this.snakeVariables.tileCount,
-            this.apple.x / this.snakeVariables.tileCount, this.apple.y / this.snakeVariables.tileCount,
-            this.direction.x, this.direction.y,
-            this.apple.x - this.snakeVariables.headPos.x, this.apple.y - this.snakeVariables.headPos.y
+            /* this.snakeVariables.headPos.x / div,
+            this.snakeVariables.headPos.y / div,
+
+            this.apple.x / div,
+            this.apple.y / div, */
+
+            this.direction.y == 1 ? 1 : 0,
+            this.direction.y == -1 ? 1 : 0,
+            this.direction.x == -1 ? 1 : 0,
+            this.direction.x == 1 ? 1 : 0,
+            //this.direction.x,
+            //this.direction.y,
+
+            (this.apple.x - this.snakeVariables.headPos.x) / div,
+            (this.apple.y - this.snakeVariables.headPos.y) / div,
+
+            wallDistUp / div,
+            wallDistDown / div,
+            wallDistLeft / div,
+            wallDistRight / div
         ]);
 
         //console.log(controls);
@@ -88,7 +150,7 @@ export default class Snake {
             if (controls[i] > controls[dir])
                 dir = i;
         }
-            
+
         switch (dir) {
             case 0:
                 this.passInput("UP");
@@ -127,11 +189,11 @@ export default class Snake {
     //check if gameOver
     isGameOver() {
         // starvation
-        if (this.timeWithoutApple > this.starveTime) {
+        if (this.timeWithoutApple > this.starveTime && this.starveTime > 0) {
             this.score -= this.starveTime;
             return true;
         }
-        
+
         //walls
         if (this.snakeVariables.headPos.x < 0) {
             return true;
@@ -170,19 +232,7 @@ export default class Snake {
         this.snakeVariables.headPos.y += this.direction.y;
 
         this.lifetime++;
-        this.score += 1 + this.lifetime / 25;
-        this.score += (1 - this.snakeVariables.headPos.distance(this.apple) / this.snakeVariables.tileCount) * 3;
-        
-        if (this.apple.x == this.snakeVariables.headPos.x) {
-            if ((this.apple.y > this.snakeVariables.headPos.y && this.direction.y == 1) ||
-                (this.apple.y < this.snakeVariables.headPos.y && this.direction.y == -1))
-                this.score += 5;
-        }
-        else if (this.apple.y == this.snakeVariables.headPos.y) {
-            if ((this.apple.x > this.snakeVariables.headPos.x && this.direction.x == 1) ||
-                (this.apple.x < this.snakeVariables.headPos.x && this.direction.x == -1))
-                this.score += 5;
-        }
+        this.score += this.scorePerMove;
     }
 
     //check if an apple is eaten
@@ -191,7 +241,7 @@ export default class Snake {
         if (this.snakeVariables.headPos.equals(this.apple)) {
             this.apple = this.randomCoord();
             this.snakeVariables.tailLength++;
-            this.score += 800;
+            this.score += this.scorePerApple;
             this.applesCollected++;
             this.timeWithoutApple = 0;
         }

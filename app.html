@@ -83,7 +83,7 @@
                     <label id="label-sim-speed" class="label has-text-grey-light pt-1" for="slider-speed">Sim
                         Speed</label>
                     <p class="control is-expanded" style="display:flex">
-                        <input type="range" class="slider is-flex-grow-1" min="1" max="100" value="1" id="slider-speed">
+                        <input type="range" class="slider is-flex-grow-1" min="1" max="30" value="3" id="slider-speed">
                     </p>
                 </div>
                 <div class="field is-grouped pt-0">
@@ -123,6 +123,14 @@
                 <!-- Simulation parameters -->
                 <label class="label is-large has-text-grey-light pt-6 mb-0">Params</label>
                 <div class="field is-grouped pt-0 mb-1">
+                    <label class="label has-text-grey-light" for="input-population-size">
+                        Population Size
+                    </label>
+                    <p class="control is-expanded ml-2">
+                        <input class="input is-small" type="number" id="input-population-size" value="1000">
+                    </p>
+                </div>
+                <div class="field is-grouped pt-0 mb-1">
                     <label id="label-mutation-rate" class="label has-text-grey-light pt-1" for="slider-speed">Mutation
                         Rate</label>
                     <p class="control is-expanded" style="display:flex">
@@ -139,11 +147,11 @@
                     </p>
                 </div>
                 <div class="field is-grouped pt-0 mb-1">
-                    <label class="label has-text-grey-light" for="input-score-per-move">
+                    <label class="label has-text-grey-light" for="input-score-per-apple">
                         Score Per Apple
                     </label>
                     <p class="control is-expanded ml-2">
-                        <input class="input is-small" type="number" id="input-score-per-move" value="300">
+                        <input class="input is-small" type="number" id="input-score-per-apple" value="300">
                     </p>
                 </div>
                 <div class="field is-grouped pt-0 mb-1">

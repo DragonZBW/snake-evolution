@@ -8,10 +8,16 @@ export default class Population {
             this.players[i].id = i;
         }
         this.size = populationSize;
+        this.nextGenSize = this.size;
 
         this.aliveCount = this.size;
 
         this.generation = 0;
+    }
+
+    // Set the size of the next generation.
+    setNextGenSize(size) {
+        this.nextGenSize = size;
     }
 
     // Get the fittest player in the population, return its index.
@@ -52,7 +58,7 @@ export default class Population {
 
         const matingPool = [];
         for (let i = 0; i < this.size; i++) {
-            this.players[i].fitness = this.players[i].score / sum;
+            this.players[i].fitness = sum == 0 ? 1 / this.size : (1 + this.players[i].score) / sum;
             for (let j = 0; j < this.players[i].fitness * this.size; j++)
                 matingPool.push(i);
         }
@@ -69,7 +75,7 @@ export default class Population {
         }
         nextGen.push(this.players[fittest].copy());
 
-        for (let i = 0; i < this.size - 1; i++) {
+        for (let i = 1; i < this.nextGenSize; i++) {
             // select a player
             const selectedPlayer = this.players[matingPool[Math.floor(Math.random() * matingPool.length)]];
             // copy and mutate the selected player into the next gen
@@ -82,6 +88,7 @@ export default class Population {
         this.players = nextGen;
         this.allDead = false;
         this.generation++;
+        this.size = this.nextGenSize;
         this.aliveCount = this.size;
     }
 

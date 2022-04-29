@@ -18,7 +18,7 @@ let population = new Population(() => {
 }, 1000);
 snakeDisplay.logic = population.players[0];
 nnDisplay.nn = population.players[0].nn;
-let steps = 1;
+let steps = 3;
 
 let secondaryDisplayMode = "First";
 
@@ -47,7 +47,17 @@ let displayID = 0;
 let running = true;
 
 const loop = () => {
-    for (let i = 0; i < steps; i++) {
+    let loopSteps = steps - 2;
+    let fps = 60;
+    if (steps == 2) {
+        fps = 30;
+        loopSteps = 1;
+    }
+    else if (steps == 1) {
+        fps = 15;
+        loopSteps = 1;
+    }
+    for (let i = 0; i < loopSteps; i++) {
         population.update();
         if (population.aliveCount == 0) {
             population.nextGeneration();
@@ -101,7 +111,7 @@ const loop = () => {
     generationNum.innerHTML = "Generation " + population.generation + ", Alive: " + population.aliveCount;
 
     if (running)
-        setTimeout(loop, 1000 / 60);
+        setTimeout(loop, 1000 / fps);
 };
 
 document.querySelector("#label-sim-speed").innerHTML = "Sim Speed (" + document.querySelector("#slider-speed").value + ")";
@@ -212,6 +222,18 @@ document.querySelector("#btn-restart").onclick = () => {
     }
 };
 
+// Params
+document.querySelector("#input-population-size").onchange = (e) => {
+    // Clamp values
+    if (e.target.value < 100)
+        e.target.value = 100;
+    else if (e.target.value > 5000)
+        e.target.value = 5000;
+    
+    // Adjust population size in next generation
+    population.setNextGenSize(e.target.value);
+};
+
 document.querySelector("#slider-mutation-rate").oninput = (e) => {
     let val = e.target.value + "";
     if (val.length == 3)
@@ -224,6 +246,25 @@ document.querySelector("#slider-mutation-rate").oninput = (e) => {
     }
 };
 
+document.querySelector("#input-score-per-move").onchange = (e) => {
+    for (let i = 0; i < population.size; i++) {
+        population.players[i].scorePerMove = Number(e.target.value);
+    }
+};
+
+document.querySelector("#input-score-per-apple").onchange = (e) => {
+    for (let i = 0; i < population.size; i++) {
+        population.players[i].scorePerApple = Number(e.target.value);
+    }
+};
+
+document.querySelector("#input-time-to-starve").onchange = (e) => {
+    for (let i = 0; i < population.size; i++) {
+        population.players[i].starveTime = Number(e.target.value);
+    }
+};
+
+// DiskOp
 document.querySelector("#btn-save-fittest").onclick = () => {
     const fittestNN = population.getFittest();
     download("nn.json", JSON.stringify(population.players[fittestNN].nn));
@@ -249,13 +290,14 @@ document.querySelector("input[type='file']").onchange = (e) => {
         // convert text to json
         try {
             const json = JSON.parse(fr.result);
-            const nn = new NN(json.inputs, json.hidden, json.outputs);
-            nn.biasH = Matrix.fromJSON(json.biasH);
-            nn.biasO = Matrix.fromJSON(json.biasO);
-            nn.learningRate = json.learningRate;
+            const nn = new NN(json.inputNames, json.hidden, json.outputNames);
+            nn.weights = [];
+            nn.biases = [];
+            for (let i = 0; i < json.weights.length; i++) {
+                nn.weights.push(Matrix.fromJSON(json.weights[i]));
+                nn.biases.push(Matrix.fromJSON(json.biases[i]));
+            }
             nn.mutationRate = json.mutationRate;
-            nn.weightsHO = Matrix.fromJSON(json.weightsHO);
-            nn.weightsIH = Matrix.fromJSON(json.weightsIH);
             population = new Population(() => {
                 const snake = new Snake();
                 snake.nn = nn.copy();
