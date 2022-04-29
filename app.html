@@ -106,23 +106,29 @@
                     </label>
                 </div>
                 <div class="field is-grouped pt-1 mb-1">
-                    <label id="label-secondary-count" class="label has-text-grey-light pt-1" for="slider-secondary-count">
+                    <label id="label-secondary-count" class="label has-text-grey-light pt-1"
+                        for="slider-secondary-count">
                         Secondary Displays
                     </label>
                     <p class="control is-expanded" style="display:flex">
-                        <input type="range" class="slider is-flex-grow-1" min="0" max="30" value="20" id="slider-secondary-count">
+                        <input type="range" class="slider is-flex-grow-1" min="0" max="30" value="20"
+                            id="slider-secondary-count">
                     </p>
                 </div>
-                <button class="button is-small is-danger" id="btn-restart">
-                    <span class="icon is-small">
-                        <i class="fas fa-exclamation-triangle"></i>
-                    </span>
-                    <span>Restart Simulation</span>
-                </button>
+                <div class="field is-grouped">
+                    <button class="button is-small is-danger" id="btn-restart">
+                        <span class="icon is-small">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </span>
+                        <span>Restart Simulation</span>
+                    </button>
+                    <label id="label-nn-init" class="label has-text-grey-light pl-2" for="btn-restart">(Using default
+                        NN)</label>
+                </div>
 
                 <!-- Simulation parameters -->
-                <label class="label is-large has-text-grey-light pt-6 mb-0">Params</label>
-                <div class="field is-grouped pt-0 mb-1">
+                <label class="label is-large has-text-grey-light pt-6 mb-0">Sim/Genetic Algorithm Params</label>
+                <div class="field is-grouped pt-3 mb-1">
                     <label class="label has-text-grey-light" for="input-population-size">
                         Population Size
                     </label>
@@ -151,7 +157,7 @@
                         Score Per Apple
                     </label>
                     <p class="control is-expanded ml-2">
-                        <input class="input is-small" type="number" id="input-score-per-apple" value="300">
+                        <input class="input is-small" type="number" id="input-score-per-apple" value="100">
                     </p>
                 </div>
                 <div class="field is-grouped pt-0 mb-1">
@@ -159,9 +165,12 @@
                         Time to Starve
                     </label>
                     <p class="control is-expanded ml-2">
-                        <input class="input is-small" type="number" id="input-time-to-starve" value="100">
+                        <input class="input is-small" type="number" id="input-time-to-starve" value="200">
                     </p>
                 </div>
+
+                <!-- NN topology setup -->
+                <label class="label is-large has-text-grey-light pt-6 mb-0">Neural Network Params</label>
 
                 <!-- Saving and loading controls -->
                 <label class="label is-large has-text-grey-light pt-6">DiskOp</label>
@@ -186,6 +195,9 @@
                             </button>
                             <input type="file" name="nn">
                         </div>
+                        <button class="button is-small ml-1 is-warning" id="btn-unload-nn" disabled>
+                            Unload
+                        </button>
                     </span>
                     <span class="level-right is-flex-grow-1 ml-1" style="display:flex">
                         <span class="one-line-notif notification is-danger is-flex-grow-1" style="display:none">

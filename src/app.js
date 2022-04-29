@@ -11,6 +11,8 @@ const nnDisplay = document.querySelector("nn-display");
 const snakeDisplay = document.querySelector("snake-display");
 const generationNum = document.querySelector("#generation-num");
 
+let snakeSource = undefined;
+
 let population = new Population(() => {
     const snake = new Snake();
     snake.nn.mutationRate = document.querySelector("#slider-mutation-rate").value;
@@ -207,11 +209,15 @@ document.querySelector("#slider-secondary-count").oninput = (e) => {
 };
 
 document.querySelector("#btn-restart").onclick = () => {
+    population.nextGenSize = Number(document.querySelector("#input-population-size").value);
     population = new Population(() => {
-        const snake = new Snake();
+        const snake = snakeSource ? snakeSource.copy() : new Snake();
         snake.nn.mutationRate = document.querySelector("#slider-mutation-rate").value;
+        snake.scorePerMove = Number(document.querySelector("#input-score-per-move").value);
+        snake.scorePerApple = Number(document.querySelector("#input-score-per-apple").value);
+        snake.starveTime = Number(document.querySelector("#input-time-to-starve").value);
         return snake;
-    }, population.size);
+    }, population.nextGenSize);
     displayID = 0;
     snakeDisplay.logic = population.players[0];
     snakeDisplay.render();
@@ -267,11 +273,27 @@ document.querySelector("#input-time-to-starve").onchange = (e) => {
 // DiskOp
 document.querySelector("#btn-save-fittest").onclick = () => {
     const fittestNN = population.getFittest();
-    download("nn.json", JSON.stringify(population.players[fittestNN].nn));
+    const obj = {
+        nn: population.players[fittestNN].nn,
+        populationSize: population.size,
+        mutationRate: population.players[fittestNN].nn.mutationRate,
+        scorePerMove: population.players[fittestNN].scorePerMove,
+        scorePerApple: population.players[fittestNN].scorePerApple,
+        timeToStarve: population.players[fittestNN].starveTime
+    };
+    download("nn.json", JSON.stringify(obj));
 };
 
 document.querySelector("#btn-save-current").onclick = () => {
-    download("nn.json", JSON.stringify(population.players[displayID].nn));
+    const obj = {
+        nn: population.players[displayID].nn,
+        populationSize: population.size,
+        mutationRate: population.players[displayID].nn.mutationRate,
+        scorePerMove: population.players[displayID].scorePerMove,
+        scorePerApple: population.players[displayID].scorePerApple,
+        timeToStarve: population.players[displayID].starveTime
+    };
+    download("nn.json", JSON.stringify(obj));
 };
 
 document.querySelector("#btn-load-nn").onclick = (e) => {
@@ -290,33 +312,44 @@ document.querySelector("input[type='file']").onchange = (e) => {
         // convert text to json
         try {
             const json = JSON.parse(fr.result);
-            const nn = new NN(json.inputNames, json.hidden, json.outputNames);
+            const nnJSON = json.nn;
+            const nn = new NN(nnJSON.inputNames, nnJSON.hidden, nnJSON.outputNames);
             nn.weights = [];
             nn.biases = [];
-            for (let i = 0; i < json.weights.length; i++) {
-                nn.weights.push(Matrix.fromJSON(json.weights[i]));
-                nn.biases.push(Matrix.fromJSON(json.biases[i]));
+            for (let i = 0; i < nnJSON.weights.length; i++) {
+                nn.weights.push(Matrix.fromJSON(nnJSON.weights[i]));
+                nn.biases.push(Matrix.fromJSON(nnJSON.biases[i]));
             }
-            nn.mutationRate = json.mutationRate;
-            population = new Population(() => {
-                const snake = new Snake();
-                snake.nn = nn.copy();
-                return snake;
-            }, population.size);
-            displayID = 0;
-            snakeDisplay.logic = population.players[0];
-            snakeDisplay.render();
+            nn.mutationRate = nnJSON.mutationRate;
+            snakeSource = new Snake();
+            snakeSource.nn = nn;
+            snakeSource.scorePerMove = json.scorePerMove;
+            snakeSource.scorePerApple = json.scorePerApple;
+            snakeSource.starveTime = json.timeToStarve;
+            document.querySelector("#label-nn-init").innerHTML = "(Using " + e.target.files[0].name + ")";
 
-            for (let i = 0; i < secondaryDisplays.length; i++) {
-                secondaryDisplays[i].logic = population.players[i];
-                secondaryDisplays[i].render();
-            }
+            document.querySelector("#input-population-size").value = json.populationSize;
+            document.querySelector("#slider-mutation-rate").value = json.mutationRate;
+            document.querySelector("#label-mutation-rate").innerHTML = "Mutation Rate (" + json.mutationRate + ")";
+            document.querySelector("#input-score-per-move").value = json.scorePerMove;
+            document.querySelector("#input-score-per-apple").value = json.scorePerApple;
+            document.querySelector("#input-time-to-starve").value = json.timeToStarve;
+
+            document.querySelector("#btn-unload-nn").removeAttribute("disabled");
+            
+            document.querySelector("#btn-restart").click();
         } catch (error) {
             console.log(error);
             document.querySelector(".one-line-notif").style.display = "inline-block";
         }
     }
     fr.readAsText(e.target.files[0]);
+};
+
+document.querySelector("#btn-unload-nn").onclick = (e) => {
+    snakeSource = undefined;
+    document.querySelector("#label-nn-init").innerHTML = "(Using default NN)";
+    e.target.setAttribute("disabled", true);
 };
 
 document.querySelector(".delete").onclick = () => {
