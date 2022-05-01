@@ -309,6 +309,37 @@ document.querySelector("#btn-load-nn").onclick = (e) => {
     document.querySelector("input[type='file']").click();
 };
 
+function restartFromJSON(json, name) {
+    const nnJSON = json.nn;
+    const nn = new NN(nnJSON.inputNames, nnJSON.hidden, nnJSON.outputNames);
+    nn.weights = [];
+    nn.biases = [];
+    for (let i = 0; i < nnJSON.weights.length; i++) {
+        nn.weights.push(Matrix.fromJSON(nnJSON.weights[i]));
+        nn.biases.push(Matrix.fromJSON(nnJSON.biases[i]));
+    }
+    nn.mutationRate = nnJSON.mutationRate;
+    snakeSource = new Snake();
+    snakeSource.nn = nn;
+    snakeSource.scorePerMove = json.scorePerMove;
+    snakeSource.scorePerApple = json.scorePerApple;
+    snakeSource.scorePerMoveTowardApple = json.scorePerMoveTowardApple;
+    snakeSource.starveTime = json.timeToStarve;
+    document.querySelector("#label-nn-init").innerHTML = "(Using " + name + ")";
+
+    document.querySelector("#input-population-size").value = json.populationSize;
+    document.querySelector("#slider-mutation-rate").value = json.mutationRate;
+    document.querySelector("#label-mutation-rate").innerHTML = "Mutation Rate (" + json.mutationRate + ")";
+    document.querySelector("#input-score-per-move").value = json.scorePerMove;
+    document.querySelector("#input-score-per-apple").value = json.scorePerApple;
+    document.querySelector("#input-score-per-move-toward-apple").value = json.scorePerMoveTowardApple;
+    document.querySelector("#input-time-to-starve").value = json.timeToStarve;
+
+    document.querySelector("#btn-unload-nn").removeAttribute("disabled");
+    
+    document.querySelector("#btn-restart").click();
+}
+
 document.querySelector("input[type='file']").onchange = (e) => {
     if (!e.target.files[0])
         return;
@@ -321,40 +352,20 @@ document.querySelector("input[type='file']").onchange = (e) => {
         // convert text to json
         try {
             const json = JSON.parse(fr.result);
-            const nnJSON = json.nn;
-            const nn = new NN(nnJSON.inputNames, nnJSON.hidden, nnJSON.outputNames);
-            nn.weights = [];
-            nn.biases = [];
-            for (let i = 0; i < nnJSON.weights.length; i++) {
-                nn.weights.push(Matrix.fromJSON(nnJSON.weights[i]));
-                nn.biases.push(Matrix.fromJSON(nnJSON.biases[i]));
-            }
-            nn.mutationRate = nnJSON.mutationRate;
-            snakeSource = new Snake();
-            snakeSource.nn = nn;
-            snakeSource.scorePerMove = json.scorePerMove;
-            snakeSource.scorePerApple = json.scorePerApple;
-            snakeSource.scorePerMoveTowardApple = json.scorePerMoveTowardApple;
-            snakeSource.starveTime = json.timeToStarve;
-            document.querySelector("#label-nn-init").innerHTML = "(Using " + e.target.files[0].name + ")";
-
-            document.querySelector("#input-population-size").value = json.populationSize;
-            document.querySelector("#slider-mutation-rate").value = json.mutationRate;
-            document.querySelector("#label-mutation-rate").innerHTML = "Mutation Rate (" + json.mutationRate + ")";
-            document.querySelector("#input-score-per-move").value = json.scorePerMove;
-            document.querySelector("#input-score-per-apple").value = json.scorePerApple;
-            document.querySelector("#input-score-per-move-toward-apple").value = json.scorePerMoveTowardApple;
-            document.querySelector("#input-time-to-starve").value = json.timeToStarve;
-
-            document.querySelector("#btn-unload-nn").removeAttribute("disabled");
-            
-            document.querySelector("#btn-restart").click();
+            restartFromJSON(json, e.target.files[0].name);
         } catch (error) {
             console.log(error);
             document.querySelector(".one-line-notif").style.display = "inline-block";
         }
     }
     fr.readAsText(e.target.files[0]);
+};
+
+document.querySelector("#btn-load-preset").onclick = (e) => {
+    fetch("./presets/" + document.querySelector("#select-preset").value + ".json")
+        .then((response) => response.json())
+        .then((json) => restartFromJSON(json, document.querySelector("#select-preset").value + ".json"))
+        .catch((e) => console.log(e));
 };
 
 document.querySelector("#btn-unload-nn").onclick = (e) => {
@@ -365,7 +376,7 @@ document.querySelector("#btn-unload-nn").onclick = (e) => {
 
 document.querySelector(".delete").onclick = () => {
     document.querySelector(".one-line-notif").style.display = "none";
-}
+};
 
 function download(filename, textInput) {
     var element = document.createElement('a');

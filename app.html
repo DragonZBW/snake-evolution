@@ -178,7 +178,7 @@
                     </p>
                 </div>
 
-                <!-- NN topology setup -->
+                <!-- NN topology setup
                 <label class="label is-large has-text-grey-light pt-6 mb-0">Neural Network Params</label>
                 <p class="help mt-0">These parameters require the simulation to be restarted to take effect.</p>
                 <label class="label has-text-grey-light mt-3">
@@ -264,6 +264,7 @@
                         <input class="input is-small" type="number" id="input-memory-count" value="0">
                     </p>
                 </div>
+                -->
 
                 <!-- Saving and loading controls -->
                 <label class="label is-large has-text-grey-light pt-6">DiskOp</label>
@@ -297,11 +298,14 @@
                     </span>
                 </span>
                 <div>
-                    <label class="label has-text-grey-light" for="select-secondary-display-mode">
+                    <label class="label has-text-grey-light" for="select-preset">
                         Use Preset
-                        <div id="select-secondary-display-mode" class="select is-small ml-2">
-                            <select>
-                                <option>Loopy</option>
+                        <div class="select is-small ml-2">
+                            <select id="select-preset">
+                                <option>Upper Right Gang</option>
+                                <option>Squiggly</option>
+                                <option>Horizontal Sweep</option>
+                                <option>Vertical Sweep</option>
                             </select>
                         </div>
                         <button id="btn-load-preset" class="button is-small">Load</button>
