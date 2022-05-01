@@ -25,40 +25,36 @@
         <app-header class="column is-narrow"></app-header>
         <app-navbar class="column is-narrow"></app-navbar>
 
-        <div class="hero is-black p-2">
+        <div class="hero is-black">
             <div class="hero-head">
                 <h1 class="title has-text-centered is-size-1 has-text-warning">
-                    Snake with Brains!!!
+                    Snakes with Brains!!!
                 </h1>
-
-                <p class="has-text-centered">
-                    Snake Evolution is like snake, but played by the computer!
-                </p>
-                <p class="has-text-centered">
-                    This project uses neural networks and a genetic algorithm to produce artificially intelligent snakes,
-                </p>
-                <p class="has-text-centered">
-                    that will attempt to navigate their boards, eat food, and avoid walls.
-                </p>
-                <br>
-                <p class="has-text-centered">
-                    Click on the first button to get started!
-                </p>
-                <p class="has-text-centered">
-                    Check out how we managed to "evolve" Snakes by clicking on the green button!
-                </p>
-                <div class="has-text-centered">
-                    <button id="appPage" class="button is is-warning" onclick="window.location.href='./app.html'">Time
-                        to Play God!</button>
-                    <button id="favPage" class="button is is-success"
-                        onclick="window.location.href='./documentation.html'">How you do it?</button>
-                </div>
                 <img class="p-3" style="display: block; margin-left: auto; margin-right: auto; width:20%"
-                    src="images/demo.PNG" alt="snakeDemo">
+                    src="images/demo.png" alt="snakeDemo">
             </div>
-            <app-footer></app-footer>
+            <div class="hero-body">
+                <div class="container mx-6">
+                    <p class="block has-text-centered">
+                        Snake Evolution is like snake, but played by the computer!
+                    </p>
+                    <p class="block has-text-centered">
+                        This project uses neural networks and a genetic algorithm to produce artificially intelligent
+                        snakes that will attempt to navigate their boards, eat food, and avoid walls. Various parameters
+                        can be adjusted to change the way the simulation works. Additionally, you can save the neural
+                        networks you create to your computer to share around or use later!
+                    </p>
+                    <div class="has-text-centered mt-6">
+                        <button id="appPage" class="button is-warning mr-2"
+                            onclick="window.location.href='./app.html'">Time
+                            to Play God!</button>
+                        <button id="favPage" class="button is-info"
+                            onclick="window.location.href='./documentation.html'">More Info</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-</body>
+    <app-footer></app-footer>
 
 </html>

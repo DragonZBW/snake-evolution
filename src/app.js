@@ -48,7 +48,7 @@ for (let i = 0; i < secondaryCount; i++) {
 let displayID = 0;
 let running = true;
 
-const loop = () => {
+const loop = (ignoreSteps) => {
     let loopSteps = steps - 2;
     let fps = 60;
     if (steps == 2) {
@@ -59,6 +59,8 @@ const loop = () => {
         fps = 15;
         loopSteps = 1;
     }
+    if (ignoreSteps)
+        loopSteps = 1;
     for (let i = 0; i < loopSteps; i++) {
         population.update();
         if (population.aliveCount == 0) {
@@ -122,11 +124,24 @@ document.querySelector("#label-secondary-count").innerHTML = "Secondary Displays
 
 loop();
 
+document.querySelector("#btn-next").onclick = () => {
+    displayID = (displayID + 1) % population.size;
+    snakeDisplay.logic = population.players[displayID];
+    snakeDisplay.render();
+};
+document.querySelector("#btn-prev").onclick = () => {
+    displayID--;
+    if (displayID < 0)
+        displayID = population.size - 1;
+    snakeDisplay.logic = population.players[displayID];
+    snakeDisplay.render();
+};
+
 document.querySelector("#btn-step").onclick = () => {
     running = false;
     document.querySelector("#pause-button-icon").classList.remove("fa-pause");
     document.querySelector("#pause-button-icon").classList.add("fa-play");
-    loop();
+    loop(true);
 };
 
 document.querySelector("#btn-pause").onclick = () => {
@@ -151,19 +166,6 @@ document.querySelector("#btn-view-fittest").onclick = () => {
 
 document.querySelector("#btn-view-fittest-living").onclick = () => {
     displayID = population.getFittest(false);
-    snakeDisplay.logic = population.players[displayID];
-    snakeDisplay.render();
-};
-
-document.querySelector("#btn-next").onclick = () => {
-    displayID = (displayID + 1) % population.size;
-    snakeDisplay.logic = population.players[displayID];
-    snakeDisplay.render();
-};
-document.querySelector("#btn-prev").onclick = () => {
-    displayID--;
-    if (displayID < 0)
-        displayID = population.size - 1;
     snakeDisplay.logic = population.players[displayID];
     snakeDisplay.render();
 };
@@ -272,6 +274,8 @@ document.querySelector("#input-score-per-move-toward-apple").onchange = (e) => {
 };
 
 document.querySelector("#input-time-to-starve").onchange = (e) => {
+    if (e.target.value < 0)
+        e.target.value = 0;
     for (let i = 0; i < population.size; i++) {
         population.players[i].starveTime = Number(e.target.value);
     }

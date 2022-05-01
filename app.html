@@ -45,12 +45,12 @@
                 <div class="level mb-0">
                     <span class="level-left">
                         <span class="multi-button level-item">
-                            <button class="button is-small" id="btn-prev">
+                            <button class="button is-small" id="btn-prev" title="View the previous snake in the population.">
                                 <span class="icon is-small mr-0">
                                     <i class="fas fa-angle-left"></i>
                                 </span>
                                 <span>Prev</span>
-                            </button><button class="button is-small" id="btn-next">
+                            </button><button class="button is-small" id="btn-next" title="View the next snake in the population.">
                                 <span>Next</span>
                                 <span class="icon is-small ml-0">
                                     <i class="fas fa-angle-right"></i>
@@ -59,12 +59,12 @@
                         </span>
                     </span>
                     <span class="level-item">
-                        <button class="button is-small mr-1" id="btn-step">
+                        <button class="button is-small mr-1" id="btn-step" title="Perform a single step of the simulation manually.">
                             <span class="icon is-small">
                                 <i class="fas fa-step-forward"></i>
                             </span>
                         </button>
-                        <button class="button is-small" id="btn-pause">
+                        <button class="button is-small" id="btn-pause"  title="Pause/play the simulation.">
                             <span class="icon is-small">
                                 <i id="pause-button-icon" class="fas fa-pause"></i>
                             </span>
@@ -72,28 +72,28 @@
                     </span>
                     <span class="level-right">
                         <span class="level-item">
-                            <button class="button is-small level-item" id="btn-view-fittest">View Fittest</button>
+                            <button class="button is-small level-item" id="btn-view-fittest" title="View the snake with the highest fitness in the current gen.">View Fittest</button>
                         </span>
                         <span class="level-item">
-                            <button class="button is-small level-item" id="btn-view-fittest-living">View Fittest
+                            <button class="button is-small level-item" id="btn-view-fittest-living" title="View the living snake with the highest fitness in the current gen.">View Fittest
                                 Living</button>
                         </span>
                     </span>
                 </div>
-                <div class="field is-grouped pt-1 mb-1">
+                <div class="field is-grouped pt-1 mb-1" title="Control how fast the simulation is run.">
                     <label id="label-sim-speed" class="label has-text-grey-light pt-1" for="slider-speed">Sim
                         Speed</label>
                     <p class="control is-expanded" style="display:flex">
                         <input type="range" class="slider is-flex-grow-1" min="1" max="30" value="3" id="slider-speed">
                     </p>
                 </div>
-                <div class="field is-grouped pt-0">
+                <div class="field is-grouped pt-0" title="If the box is checked, the fittest living snake will always be displayed.">
                     <label class="label checkbox has-text-grey-light" for="cb-show-fittest-living">
                         <input type="checkbox" id="cb-show-fittest-living">
                         Always Show Fittest Living Snake
                     </label>
                 </div>
-                <div>
+                <div title="Choose which method to use for selecting which snakes should be displayed in the secondary displays.">
                     <label class="label has-text-grey-light" for="select-secondary-display-mode">
                         Secondary Displays
                         <div id="select-secondary-display-mode" class="select is-small ml-2">
@@ -106,7 +106,7 @@
                         </div>
                     </label>
                 </div>
-                <div class="field is-grouped pt-1 mb-1">
+                <div class="field is-grouped pt-1 mb-1" title="Choose how many secondary displays to render.">
                     <label id="label-secondary-count" class="label has-text-grey-light pt-1"
                         for="slider-secondary-count">
                         Secondary Displays
@@ -117,7 +117,7 @@
                     </p>
                 </div>
                 <div class="field is-grouped">
-                    <button class="button is-small is-danger" id="btn-restart">
+                    <button class="button is-small is-danger" id="btn-restart" title="Restart the simulation from generation 0 (using the currently loaded preset, if there is one).">
                         <span class="icon is-small">
                             <i class="fas fa-exclamation-triangle"></i>
                         </span>
@@ -129,7 +129,7 @@
 
                 <!-- Simulation parameters -->
                 <label class="label is-large has-text-grey-light pt-6 mb-0">Sim/Genetic Algorithm Params</label>
-                <div class="field is-grouped pt-3 mb-1">
+                <div class="field is-grouped pt-3 mb-1" title="The number of simulations to run during each generation.">
                     <label class="label has-text-grey-light" for="input-population-size">
                         Population Size
                     </label>
@@ -137,7 +137,7 @@
                         <input class="input is-small" type="number" id="input-population-size" value="1000">
                     </p>
                 </div>
-                <div class="field is-grouped pt-0 mb-1">
+                <div class="field is-grouped pt-0 mb-1" title="The rate at which neural networks' weights and biases will be mutated.">
                     <label id="label-mutation-rate" class="label has-text-grey-light pt-1" for="slider-speed">Mutation
                         Rate</label>
                     <p class="control is-expanded" style="display:flex">
@@ -145,7 +145,7 @@
                             id="slider-mutation-rate">
                     </p>
                 </div>
-                <div class="field is-grouped pt-0 mb-1">
+                <div class="field is-grouped pt-0 mb-1"  title="The number of points a snake gets for moving one tile without dying.">
                     <label class="label has-text-grey-light" for="input-score-per-move">
                         Score Per Move
                     </label>
@@ -153,7 +153,7 @@
                         <input class="input is-small" type="number" id="input-score-per-move" value="1">
                     </p>
                 </div>
-                <div class="field is-grouped pt-0 mb-1">
+                <div class="field is-grouped pt-0 mb-1" title="The number of points a snake gets for collecting an apple.">
                     <label class="label has-text-grey-light" for="input-score-per-apple">
                         Score Per Apple
                     </label>
@@ -161,7 +161,7 @@
                         <input class="input is-small" type="number" id="input-score-per-apple" value="800">
                     </p>
                 </div>
-                <div class="field is-grouped pt-0 mb-1">
+                <div class="field is-grouped pt-0 mb-1" title="The number of points a snake gets for making a move that puts it closer to the apple.">
                     <label class="label has-text-grey-light" for="input-score-per-move-toward-apple">
                         Score Per Move Toward Apple
                     </label>
@@ -169,7 +169,7 @@
                         <input class="input is-small" type="number" id="input-score-per-move-toward-apple" value="5">
                     </p>
                 </div>
-                <div class="field is-grouped pt-0 mb-1">
+                <div class="field is-grouped pt-0 mb-1" title="The number of tiles a snake can move without collecting an apple before it will automatically die.">
                     <label class="label has-text-grey-light" for="input-time-to-starve">
                         Time to Starve
                     </label>
@@ -177,8 +177,11 @@
                         <input class="input is-small" type="number" id="input-time-to-starve" value="200">
                     </p>
                 </div>
+                <p class="help">
+                    If Time to Starve is set to 0, the snakes will never starve.
+                </p>
 
-                <!-- NN topology setup
+                <!-- NN topology setup -- One day this will be re-added when we can get it working.
                 <label class="label is-large has-text-grey-light pt-6 mb-0">Neural Network Params</label>
                 <p class="help mt-0">These parameters require the simulation to be restarted to take effect.</p>
                 <label class="label has-text-grey-light mt-3">
@@ -271,17 +274,17 @@
                 <span class="level is-flex-grow-1 mb-2">
                     <span class="level-left">
                         <div class="multi-button">
-                            <button class="button is-small" id="btn-save-fittest">
+                            <button class="button is-small" id="btn-save-fittest" title="Save the snake with the highest score to a file.">
                                 <span class="icon is-small">
                                     <i class="fas fa-save"></i>
                                 </span>
                                 <span>Save Fittest</span>
-                            </button><button class="button is-small" id="btn-save-current">
+                            </button><button class="button is-small" id="btn-save-current" title="Save the snake currently in the primary view to a file.">
                                 <span class="icon is-small">
                                     <i class="fas fa-save"></i>
                                 </span>
                                 <span>Save Current</span>
-                            </button><button class="button is-small" id="btn-load-nn">
+                            </button><button class="button is-small" id="btn-load-nn" title="Load in a snake from a file. This will restart the simulation using the loaded snake for each spot in the population.">
                                 <span class="icon is-small">
                                     <i class="fas fa-upload"></i>
                                 </span>
@@ -298,7 +301,7 @@
                     </span>
                 </span>
                 <div>
-                    <label class="label has-text-grey-light" for="select-preset">
+                    <label class="label has-text-grey-light" for="select-preset" title="Select a preset neural network configuration that can be loaded in.">
                         Use Preset
                         <div class="select is-small ml-2">
                             <select id="select-preset">
@@ -308,7 +311,7 @@
                                 <option>Vertical Sweep</option>
                             </select>
                         </div>
-                        <button id="btn-load-preset" class="button is-small">Load</button>
+                        <button id="btn-load-preset" class="button is-small" title="Load in the snake from the selected preset. This will restart the simulation using the loaded snake for each spot in the population.">Load</button>
                     </label>
                 </div>
                 <button class="button is-small is-warning mt-2" id="btn-unload-nn" disabled>
