@@ -1,7 +1,7 @@
 const template = document.createElement("template");
 template.innerHTML = `
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
-<link href="http://fonts.cdnfonts.com/css/arcade-classic" rel="stylesheet">
+<link href="https://fonts.cdnfonts.com/css/arcade-classic" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <header>
 
@@ -19,7 +19,7 @@ template.innerHTML = `
     </div>
 
     <div class="navbar-menu py-0" id="nav-links">
-        <div style="@import url('http://fonts.cdnfonts.com/css/arcade-classic'); font-family: 'ArcadeClassic', sans-serif;" class="navbar-end">
+        <div style="@import url('https://fonts.cdnfonts.com/css/arcade-classic'); font-family: 'ArcadeClassic', sans-serif;" class="navbar-end">
             <a class="navbar-item is-hoverable" data-nav="home" href="home.html">Home</a>
             <a class="navbar-item is-hoverable" data-nav="app" href="app.html">App</a>
             <a class="navbar-item is-hoverable" data-nav="documentation" href="documentation.html">Documentation</a>

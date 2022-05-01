@@ -1,10 +1,10 @@
 const template = document.createElement("template");
 template.innerHTML = `
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
-<link href="http://fonts.cdnfonts.com/css/arcade-classic" rel="stylesheet">
+<link href="https://fonts.cdnfonts.com/css/arcade-classic" rel="stylesheet">
 
 <footer class="footer has-background-grey-darker my-0">
-  <div style="@import url('http://fonts.cdnfonts.com/css/arcade-classic'); font-family: 'ArcadeClassic', sans-serif;" class="content has-text-centered">
+  <div style="@import url('https://fonts.cdnfonts.com/css/arcade-classic'); font-family: 'ArcadeClassic', sans-serif;" class="content has-text-centered">
     <p>
     Contact zbw5667@g.rit.edu, hz1220@g.rit.edu Copyright &copy;2022 Zack Wilson, Hongfei Zhu
     </p>
