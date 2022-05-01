@@ -13,7 +13,9 @@ canvas {
 <canvas width=400 height=400></canvas>
 `;
 
+// Displays the snake game
 class SnakeDisplay extends HTMLElement {
+    // Construct the display
     constructor() {
         super();
 
@@ -27,12 +29,13 @@ class SnakeDisplay extends HTMLElement {
         this.logic;
     }
 
+    // Set the board's size
     setWidth(width) {
         this.board.width = width;
         this.board.height = width;
     }
 
-    //check if gameOver
+    //check if gameOver and draw game over text
     drawGameOver() {
         //game over text
         if (!this.logic.alive) {
@@ -106,6 +109,7 @@ class SnakeDisplay extends HTMLElement {
         this.boardCtx.restore();
     }
 
+    // draw everything
     render() {
         this.clearScreen();
         this.drawApple();

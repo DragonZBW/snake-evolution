@@ -1,4 +1,3 @@
-// NN TESTING STUFF
 import "./nndisplay.js";
 import "./snakedisplay.js";
 import Snake from "./snake.js";
@@ -7,12 +6,15 @@ import "./init.js";
 import NN from "./nn.js";
 import Matrix from "./matrix.js";
 
+// Get display elements that are going to get updated
 const nnDisplay = document.querySelector("nn-display");
 const snakeDisplay = document.querySelector("snake-display");
 const generationNum = document.querySelector("#generation-num");
 
+// This holds the template to use for snakes when restarting the population
 let snakeSource = undefined;
 
+// Initialize population using default values
 let population = new Population(() => {
     const snake = new Snake();
     snake.nn.mutationRate = document.querySelector("#slider-mutation-rate").value;
@@ -23,9 +25,9 @@ nnDisplay.nn = population.players[0].nn;
 let steps = 3;
 
 let secondaryDisplayMode = "First";
-
 let alwaysShowFittestLiving = false;
 
+// Set up displays
 generationNum.innerHTML = "Generation: " + population.generation + ", Alive: " + population.aliveCount;
 
 const secondaryDisplaysParent = document.querySelector("#secondary-displays");
@@ -48,6 +50,7 @@ for (let i = 0; i < secondaryCount; i++) {
 let displayID = 0;
 let running = true;
 
+// Loop function (this steps through the simulation and loops it if running is true)
 const loop = (ignoreSteps) => {
     let loopSteps = steps - 2;
     let fps = 60;
@@ -118,17 +121,21 @@ const loop = (ignoreSteps) => {
         setTimeout(loop, 1000 / fps);
 };
 
+// Set parameters and start looping
 document.querySelector("#label-sim-speed").innerHTML = "Sim Speed (" + document.querySelector("#slider-speed").value + ")";
 document.querySelector("#label-mutation-rate").innerHTML = "Mutation Rate (" + document.querySelector("#slider-mutation-rate").value + ")";
 document.querySelector("#label-secondary-count").innerHTML = "Secondary Displays (" + document.querySelector("#slider-secondary-count").value + ")";
 
 loop();
 
+// Set next button callback - moves display to next snake in population
 document.querySelector("#btn-next").onclick = () => {
     displayID = (displayID + 1) % population.size;
     snakeDisplay.logic = population.players[displayID];
     snakeDisplay.render();
 };
+
+// Set previous button callback - moves display to previous snake in population
 document.querySelector("#btn-prev").onclick = () => {
     displayID--;
     if (displayID < 0)
@@ -137,6 +144,7 @@ document.querySelector("#btn-prev").onclick = () => {
     snakeDisplay.render();
 };
 
+// Set step button callback - moves through one step of the simulation
 document.querySelector("#btn-step").onclick = () => {
     running = false;
     document.querySelector("#pause-button-icon").classList.remove("fa-pause");
@@ -144,6 +152,7 @@ document.querySelector("#btn-step").onclick = () => {
     loop(true);
 };
 
+// Set pause button callback - pauses/plays the simulation
 document.querySelector("#btn-pause").onclick = () => {
     running = !running;
     if (running)
@@ -158,27 +167,32 @@ document.querySelector("#btn-pause").onclick = () => {
     }
 };
 
+// Set view fittest button callback - finds the fittest snake in population and displays it
 document.querySelector("#btn-view-fittest").onclick = () => {
     displayID = population.getFittest();
     snakeDisplay.logic = population.players[displayID];
     snakeDisplay.render();
 };
 
+// Set view fittest living button callback - finds the fittest living snake in population and displays it
 document.querySelector("#btn-view-fittest-living").onclick = () => {
     displayID = population.getFittest(false);
     snakeDisplay.logic = population.players[displayID];
     snakeDisplay.render();
 };
 
+// Set sim speed slider callback - Adjusts number of steps per loop
 document.querySelector("#slider-speed").oninput = (e) => {
     document.querySelector("#label-sim-speed").innerHTML = "Sim Speed (" + e.target.value + ")";
     steps = e.target.value;
 };
 
+// Set show fittest living checkbox callback - Sets the alwaysShowFittestLiving flag
 document.querySelector("#cb-show-fittest-living").onclick = (e) => {
     alwaysShowFittestLiving = e.target.checked;
 };
 
+// Set secondary display mode dropdown callback - Sets the way snakes are selected to display in the secondary displays
 document.querySelector("#select-secondary-display-mode").onchange = (e) => {
     secondaryDisplayMode = e.target.value;
     if (secondaryDisplayMode == "First") {
@@ -189,6 +203,7 @@ document.querySelector("#select-secondary-display-mode").onchange = (e) => {
     }
 };
 
+// Set secondary display count slider callback - Sets the number of secondary displays
 document.querySelector("#slider-secondary-count").oninput = (e) => {
     document.querySelector("#label-secondary-count").innerHTML = "Secondary Displays (" + e.target.value + ")";
     for (let i = 0; i < secondaryDisplays.length; i++) {
@@ -210,6 +225,7 @@ document.querySelector("#slider-secondary-count").oninput = (e) => {
     }
 };
 
+// Set restart button callback - Restarts the population
 document.querySelector("#btn-restart").onclick = () => {
     population.nextGenSize = Number(document.querySelector("#input-population-size").value);
     population = new Population(() => {
@@ -232,6 +248,7 @@ document.querySelector("#btn-restart").onclick = () => {
 };
 
 // Params
+// Set population size input callback - Sets the next gen size of the population
 document.querySelector("#input-population-size").onchange = (e) => {
     // Clamp values
     if (e.target.value < 100)
@@ -243,6 +260,7 @@ document.querySelector("#input-population-size").onchange = (e) => {
     population.setNextGenSize(e.target.value);
 };
 
+// Set mutation rate slider callback - Sets the mutation rate??? Duh???
 document.querySelector("#slider-mutation-rate").oninput = (e) => {
     let val = e.target.value + "";
     if (val.length == 3)
@@ -255,24 +273,28 @@ document.querySelector("#slider-mutation-rate").oninput = (e) => {
     }
 };
 
+// Set score per move input callback - Sets score per move of snakes
 document.querySelector("#input-score-per-move").onchange = (e) => {
     for (let i = 0; i < population.size; i++) {
         population.players[i].scorePerMove = Number(e.target.value);
     }
 };
 
+// Set score per apple input callback - Sets score per apple of snakes
 document.querySelector("#input-score-per-apple").onchange = (e) => {
     for (let i = 0; i < population.size; i++) {
         population.players[i].scorePerApple = Number(e.target.value);
     }
 };
 
+// Set score per move toward apple input callback - Sets score per move toward apple of snakes
 document.querySelector("#input-score-per-move-toward-apple").onchange = (e) => {
     for (let i = 0; i < population.size; i++) {
         population.players[i].scorePerMoveTowardApple = Number(e.target.value);
     }
 };
 
+// Set time to starve input callback - Sets the number of steps a snake can move without getting an apple before it dies
 document.querySelector("#input-time-to-starve").onchange = (e) => {
     if (e.target.value < 0)
         e.target.value = 0;
@@ -282,6 +304,7 @@ document.querySelector("#input-time-to-starve").onchange = (e) => {
 };
 
 // DiskOp
+// Set save fittest button callback - Saves the fittest snake in the current population as a JSON file
 document.querySelector("#btn-save-fittest").onclick = () => {
     const fittestNN = population.getFittest();
     const obj = {
@@ -296,6 +319,7 @@ document.querySelector("#btn-save-fittest").onclick = () => {
     download("nn.json", JSON.stringify(obj));
 };
 
+// Set save current button callback - Saves the snake currently in the primary display as a JSON file
 document.querySelector("#btn-save-current").onclick = () => {
     const obj = {
         nn: population.players[displayID].nn,
@@ -309,10 +333,12 @@ document.querySelector("#btn-save-current").onclick = () => {
     download("nn.json", JSON.stringify(obj));
 };
 
+// Set load button callback - Loads a JSON file from the user's computer as a snake
 document.querySelector("#btn-load-nn").onclick = (e) => {
     document.querySelector("input[type='file']").click();
 };
 
+// Restart the populatiomn using a JSON object as a template for the snakes
 function restartFromJSON(json, name) {
     const nnJSON = json.nn;
     const nn = new NN(nnJSON.inputNames, nnJSON.hidden, nnJSON.outputNames);
@@ -344,6 +370,7 @@ function restartFromJSON(json, name) {
     document.querySelector("#btn-restart").click();
 }
 
+// Set what actually happens when a file gets selected
 document.querySelector("input[type='file']").onchange = (e) => {
     if (!e.target.files[0])
         return;
@@ -365,6 +392,7 @@ document.querySelector("input[type='file']").onchange = (e) => {
     fr.readAsText(e.target.files[0]);
 };
 
+// Set load preset button callback - Loads a preset from presets folder based on selected value in select-preset
 document.querySelector("#btn-load-preset").onclick = (e) => {
     fetch("./presets/" + document.querySelector("#select-preset").value + ".json")
         .then((response) => response.json())
@@ -372,16 +400,19 @@ document.querySelector("#btn-load-preset").onclick = (e) => {
         .catch((e) => console.log(e));
 };
 
+// Set unload button callback - resets the snakeSource to undefined so that restarting the simulation will use default settings
 document.querySelector("#btn-unload-nn").onclick = (e) => {
     snakeSource = undefined;
     document.querySelector("#label-nn-init").innerHTML = "(Using default NN)";
     e.target.setAttribute("disabled", true);
 };
 
+// Set delete button callback (the x button on the error message) - hides the error message
 document.querySelector(".delete").onclick = () => {
     document.querySelector(".one-line-notif").style.display = "none";
 };
 
+// Downloads a file to the user's computer
 function download(filename, textInput) {
     var element = document.createElement('a');
     element.setAttribute('href', 'data:text/plain;charset=utf-8, ' + encodeURIComponent(textInput));
@@ -390,6 +421,10 @@ function download(filename, textInput) {
     element.click();
     document.body.removeChild(element);
 }
+
+// Key input
+// Removed for now
+// Will add to allow users to play against the AI at some point
 
 // document.body.onkeydown = keyDown;
 // //movement controls

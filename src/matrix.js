@@ -16,6 +16,7 @@ export default class Matrix {
         }
     }
 
+    // Create a matrix from an array
     static fromArray(arr) {
         const m = new Matrix(arr.length, 1);
         for (let i = 0; i < arr.length; i++) {
@@ -24,24 +25,28 @@ export default class Matrix {
         return m;
     }
 
+    // Create a matrix from a json representation of it
     static fromJSON(json) {
         const m = new Matrix(json.rows, json.cols);
         m.map((el, i, j) => json.data[i * m.cols + j]);
         return m;
     }
 
+    // Set each value of a matrix according to a function
     static map(matrix, func) {
         const result = new Matrix(matrix.rows, matrix.cols);
         result.map((el, i, j) => func(matrix.get(i, j)));
         return result;
     }
 
+    // Return the transpose of a matrix
     static transpose(matrix) {
         const result = new Matrix(matrix.cols, matrix.rows);
         result.map((el, i, j) => matrix.get(j, i));
         return result;
     }
     
+    // Return a matrix whose values are the values of two other matrices added together
     static add(a, b) {
         if (a.cols != b.cols || a.rows != b.rows) {
             throw "Error: Trying to add matrices with non-matching dimensions!";
@@ -52,6 +57,7 @@ export default class Matrix {
         return result;
     }
 
+    // Return a matrix whose values are the values of two other matrices subtracted together
     static subtract(a, b) {
         if (a.cols != b.cols || a.rows != b.rows) {
             throw "Error: Trying to subtract matrices with non-matching dimensions!";
@@ -62,6 +68,7 @@ export default class Matrix {
         return result;
     }
 
+    // Perform matrix multiplication using two matrices and return the result
     static multiply(a, b) {
         if (a.cols != b.rows) {
             throw "Error: Trying to multiply matrices with non-matching rows/columns!";
@@ -82,6 +89,7 @@ export default class Matrix {
         return result;
     }
 
+    // Set the value of an element in the matrix
     set(i, j, value) {
         if (i * this.cols + j > this.rows * this.cols)
             throw "Indices specified are outside of matrix dimensions. (" + i + ", " + j + ") specified, (" + this.rows + ", " + this.cols + ") actual";
@@ -89,6 +97,7 @@ export default class Matrix {
         this.data[i * this.cols + j] = value;
     }
 
+    // Get the value of an element in the matrix
     get(i, j) {
         if (i * this.cols + j > this.rows * this.cols)
             throw "Indices specified are outside of matrix dimensions. (" + i + ", " + j + ") specified, (" + this.rows + ", " + this.cols + ") actual";
@@ -96,12 +105,14 @@ export default class Matrix {
         return this.data[i * this.cols + j];
     }
 
+    // Return a copy of the matrix
     copy() {
         const result = new Matrix(this.rows, this.cols);
         result.map((el, i, j) => this.get(i, j));
         return result;
     }
 
+    // Convert the matrix to an array and return it
     toArray() {
         let arr = [];
         for (let i = 0; i < this.rows; i++) {
@@ -112,6 +123,7 @@ export default class Matrix {
         return arr;
     }
 
+    // Set each element of the array using a function
     map(func) {
         for (let i = 0; i < this.rows; i++) {
             for (let j = 0; j < this.cols; j++) {
@@ -120,6 +132,7 @@ export default class Matrix {
         }
     }
 
+    // Multiply (elementwise or scalar)
     multiply(n) {
         if (n instanceof Matrix) {
             this.map((el, i, j) => this.get(i, j) * n.get(i, j));
@@ -128,6 +141,7 @@ export default class Matrix {
         }
     }
 
+    // Add (elementwise or scalar)
     add(n) {
         if (n instanceof Matrix) {
             this.map((el, i, j) => el + n.get(i, j));
@@ -136,10 +150,12 @@ export default class Matrix {
         }
     }
 
+    // Randomize all values of this matrix between -1 and 1
     randomize() {
         this.map(() => randomMinusOneToOne());
     }
 
+    // Print the matrix as a table
     print() {
         const arr = [];
         for (let i = 0; i < this.rows; i++) {

@@ -26,6 +26,7 @@ export default class Vector {
         return new Vector(this.x * scalar, this.y * scalar);
     }
 
+    // Check if this vector has values equal to another vector.
     equals(other) {
         return this.x == other.x && this.y == other.y;
     }

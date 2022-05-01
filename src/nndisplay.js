@@ -13,7 +13,7 @@ canvas {
 <canvas width=800 height=400></canvas>
 `;
 
-const xSpacing = 75;
+const xSpacing = 100;
 const ySpacing = 20;
 
 // A canvas that will display a visualization of a neural network.
@@ -162,7 +162,6 @@ class NNDisplay extends HTMLElement {
     }
 
     // Render the canvas and everything in it. This will display the current state of the neural network.
-    // Currently only renders a black square for testing purposes.
     render() {
         this.ctx.save();
 

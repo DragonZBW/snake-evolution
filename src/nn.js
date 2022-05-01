@@ -34,17 +34,6 @@ export default class NN {
             this.biases[this.biases.length - 1].randomize();
         }
 
-        // this.weightsIH = new Matrix(this.hidden, this.inputs);
-        // this.weightsHO = new Matrix(this.outputs, this.hidden);
-        // this.weightsIH.randomize();
-        // this.weightsHO.randomize();
-
-
-        // this.biasH = new Matrix(this.hidden, 1);
-        // this.biasO = new Matrix(this.outputs, 1);
-        // this.biasH.randomize();
-        // this.biasO.randomize();
-
         //this.learningRate = .05;
         this.mutationRate = .02;
     }
@@ -58,10 +47,6 @@ export default class NN {
             clone.weights[i] = this.weights[i].copy();
             clone.biases[i] = this.biases[i].copy();
         }
-        // clone.weightsIH = this.weightsIH.copy();
-        // clone.weightsHO = this.weightsHO.copy();
-        // clone.biasH = this.biasH.copy();
-        // clone.biasO = this.biasO.copy();
         // clone.learningRate = this.learningRate;
         clone.mutationRate = this.mutationRate;
         return clone;
@@ -78,18 +63,11 @@ export default class NN {
             outputs.map(sigmoid);
         }
 
-        // let hidden = Matrix.multiply(this.weightsIH, inputs);
-        // hidden.add(this.biasH);
-        // hidden.map(sigmoid);
-
-        // let outputs = Matrix.multiply(this.weightsHO, hidden);
-        // outputs.add(this.biasO);
-        // outputs.map(sigmoid);
-
         return outputs.toArray();
     }
 
     // Train the neural network to get closer to an expected output using backpropagation.
+    // This was used to test the neural networks. I'm leaving it here in case we want to re-add some backpropagation in the future.
     // train(inputArray, targetArray) {
     //     let inputs = Matrix.fromArray(inputArray);
 
@@ -146,10 +124,5 @@ export default class NN {
             this.weights[i].map(mutateFunc);
             this.biases[i].map(mutateFunc);
         }
-        
-        // this.weightsHO.map(mutateFunc);
-        // this.weightsIH.map(mutateFunc);
-        // this.biasH.map(mutateFunc);
-        // this.biasO.map(mutateFunc);
     }
 }

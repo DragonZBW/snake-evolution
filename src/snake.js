@@ -7,6 +7,7 @@ import Vector from "./vector.js";
 
 // The logic for the snake game.
 export default class Snake {
+    // construct the snake game
     constructor(starveTime = 200, scorePerMove = 1, scorePerApple = 800, scorePerMoveTowardApple = 5) {
         //snake variables
         this.snakeVariables = {
@@ -61,27 +62,24 @@ export default class Snake {
         this.scorePerApple = scorePerApple;
     }
 
+    // Make a copy of the snake
     copy() {
         const clone = new Snake(this.starveTime, this.scorePerMove, this.scorePerApple);
         clone.nn = this.nn.copy();
         return clone;
     }
 
+    // Mutate the snake's neural network
     mutate() {
         this.nn.mutate();
     }
 
+    // The function to run each step of the simulation
     update() {
         if (!this.alive)
             return;
 
-        // Get control from neural network
-        // const controls = this.nn.feedForward([
-        //     this.apple.x / this.snakeVariables.tileCount, this.apple.y / this.snakeVariables.tileCount,
-        //     1 - (this.snakeVariables.headPos.x / this.snakeVariables.tileCount / 2), 1 - (this.snakeVariables.headPos.y / this.snakeVariables.tileCount / 2),
-        //     1 - ((this.snakeVariables.tileCount - 1 - this.snakeVariables.headPos.x) / this.snakeVariables.tileCount / 2), 1 - ((this.snakeVariables.tileCount - 1 - this.snakeVariables.headPos.y) / this.snakeVariables.tileCount / 2),
-        //     this.direction.x, this.direction.y]);
-
+        // calculate distance to wall in 4 directions
         let wallDistUp = this.snakeVariables.headPos.y + 1;
         for (let i = 0; i < this.snakeVariables.snakeParts.length; i++) {
             if (this.snakeVariables.snakeParts[i].x == this.snakeVariables.headPos.x &&
@@ -122,42 +120,7 @@ export default class Snake {
             }
         }
 
-        const div = this.snakeVariables.tileCount - 1;
-
-        // const controls = this.nn.feedForward([
-        //     this.snakeVariables.headPos.x / div,
-        //     this.snakeVariables.headPos.y / div,
-
-        //     // this.apple.x / div,
-        //     // this.apple.y / div,
-
-        //     // this.direction.y == 1 ? 1 : 0,
-        //     // this.direction.y == -1 ? 1 : 0,
-        //     // this.direction.x == -1 ? 1 : 0,
-        //     // this.direction.x == 1 ? 1 : 0,
-        //     this.direction.x,
-        //     this.direction.y,
-
-        //     // this.apple.y < this.snakeVariables.headPos.y ? 1 : 0,
-        //     // this.apple.y > this.snakeVariables.headPos.y ? 1 : 0,
-        //     // this.apple.x < this.snakeVariables.headPos.x ? 1 : 0,
-        //     // this.apple.x > this.snakeVariables.headPos.x ? 1 : 0,
-
-        //     (this.apple.x - this.snakeVariables.headPos.x) / div,
-        //     (this.apple.y - this.snakeVariables.headPos.y) / div,
-
-        //     // wallDistUp / div,
-        //     // wallDistDown / div,
-        //     // wallDistLeft / div,
-        //     // wallDistRight / div
-        // ]);
-
-        // const controls = this.nn.feedForward([
-        //     (this.snakeVariables.headPos.x / div) * 2 - 1, (this.snakeVariables.headPos.y / div) * 2 - 1,
-        //     this.direction.x, this.direction.y,
-        //     this.apple.x - this.snakeVariables.headPos.x, this.apple.y - this.snakeVariables.headPos.y
-        // ]);
-
+        // send inputs to neural network to get control outputs
         const controls = this.nn.feedForward([
             this.direction.y == 1 ? 1 : 0,
             this.direction.y == -1 ? 1 : 0,
@@ -173,14 +136,9 @@ export default class Snake {
             this.apple.y > this.snakeVariables.headPos.y ? 0 : 1,
             this.apple.x < this.snakeVariables.headPos.x ? 1 : 0,
             this.apple.x > this.snakeVariables.headPos.x ? 0 : 1
-            // Math.max(0, this.snakeVariables.headPos.y - this.apple.y) / div,
-            // Math.max(0, this.apple.y - this.snakeVariables.headPos.y) / div,
-            // Math.max(0, this.snakeVariables.headPos.x - this.apple.x) / div,
-            // Math.max(0, this.apple.x - this.snakeVariables.headPos.x) / div,
         ]);
 
-        //console.log(controls);
-        // Set direction from control
+        // Set direction from controls
         let dir = 0;
         for (let i = 0; i < 4; i++) {
             if (controls[i] > controls[dir])
@@ -222,7 +180,7 @@ export default class Snake {
         return coord;
     }
 
-    //check if gameOver
+    // check if gameOver
     isGameOver() {
         // starvation
         if (this.timeWithoutApple > this.starveTime && this.starveTime > 0) {
