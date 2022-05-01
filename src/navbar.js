@@ -4,12 +4,12 @@ template.innerHTML = `
 <link href="http://fonts.cdnfonts.com/css/arcade-classic" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <header>
-<script src="https://kit.fontawesome.com/a12281c58d.js" crossorigin="anonymous"></script>
 
 <nav class="navbar is-dark">
     <div class="navbar-brand">
-        <a href="home.html"><i class="fa-solid fa-s" id="icon"></i></a>
-        <a class="navbar-icon" href="home.html">
+        <a class="navbar-item has-background-warning" href="home.html">
+            <img src="images/icon.png" alt="site-logo" style="max-height: 40px" class="py-2 px-2">
+
         </a>
         <a class="navbar-burger" id="burger">
             <span></span>
@@ -55,7 +55,7 @@ class Navbar extends HTMLElement {
             navMenus.forEach(menu => {
                 let href = menu.href.split("/");
                 let currentHref = href[href.length - 1];
-                if(pathName === currentHref) {
+                if (pathName === currentHref) {
                     menu.classList.add("has-background-warning", "has-text-grey-dark");
                 }
             })

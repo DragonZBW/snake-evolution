@@ -59,7 +59,12 @@ class SnakeDisplay extends HTMLElement {
     //clear screen
     clearScreen() {
         this.boardCtx.fillStyle = "#222";
-        this.boardCtx.fillRect(0, 0, this.board.width, this.board.height);
+        this.boardCtx.save();
+        this.boardCtx.beginPath();
+        this.boardCtx.rect(0, 0, this.board.width, this.board.height);
+        this.boardCtx.fill();
+        this.boardCtx.closePath();
+        this.boardCtx.restore();
     }
 
     //draw the snake
@@ -72,18 +77,33 @@ class SnakeDisplay extends HTMLElement {
         this.boardCtx.fillStyle = "red";
         for (let i = 0; i < snakeParts.length; i++) {
             let part = snakeParts[i];
-            this.boardCtx.fillRect(part.x * this.board.width / tileCount, part.y * this.board.height / tileCount, tileSizePixels, tileSizePixels);
+            this.boardCtx.save();
+            this.boardCtx.beginPath();
+            this.boardCtx.rect(part.x * this.board.width / tileCount, part.y * this.board.height / tileCount, tileSizePixels, tileSizePixels);
+            this.boardCtx.fill();
+            this.boardCtx.closePath();
+            this.boardCtx.restore();
         }
 
         //snake head piece
-        this.boardCtx.fillRect(headPos.x * this.board.width / tileCount, headPos.y * this.board.height / tileCount, tileSizePixels, tileSizePixels);
+        this.boardCtx.save();
+        this.boardCtx.beginPath();
+        this.boardCtx.rect(headPos.x * this.board.width / tileCount, headPos.y * this.board.height / tileCount, tileSizePixels, tileSizePixels);
+        this.boardCtx.fill();
+        this.boardCtx.closePath();
+        this.boardCtx.restore();
     }
 
     //draw apple
     drawApple() {
         const tileSizePixels = this.board.width / this.logic.snakeVariables.tileCount * this.logic.snakeVariables.tileSize;
+        this.boardCtx.save();
         this.boardCtx.fillStyle = "green";
-        this.boardCtx.fillRect(this.logic.apple.x * this.board.width / this.logic.snakeVariables.tileCount, this.logic.apple.y * this.board.height / this.logic.snakeVariables.tileCount, tileSizePixels, tileSizePixels);
+        this.boardCtx.beginPath();
+        this.boardCtx.rect(this.logic.apple.x * this.board.width / this.logic.snakeVariables.tileCount, this.logic.apple.y * this.board.height / this.logic.snakeVariables.tileCount, tileSizePixels, tileSizePixels);
+        this.boardCtx.fill();
+        this.boardCtx.closePath();
+        this.boardCtx.restore();
     }
 
     render() {
